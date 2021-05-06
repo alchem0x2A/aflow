@@ -18,7 +18,7 @@ except ImportError:
 
 from os import path
 setup(name='aflow',
-      version='0.0.11',
+      version='0.0.11-patched',
       description='Python API for searching AFLOW database.',
       long_description= "" if not path.isfile("README.md") else read_md('README.md'),
       author='Conrad W Rosenbrock',
@@ -37,7 +37,7 @@ setup(name='aflow',
       ],
       packages=['aflow'],
       scripts=[],
-      package_data={'aflow': ['templates/*']},
+      package_data={'aflow': ['templates/*', 'api/*.json']},
       include_package_data=True,
       classifiers=[
           'Development Status :: 4 - Beta',
