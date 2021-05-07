@@ -79,8 +79,7 @@ def _ldau_TLUJ(value):
 
 
 def _stoich(value):
-    """stoich is a deprecated keywork now
-    """
+    """stoich is a deprecated keywork now"""
     return list(map(_number, value.strip().split()))
 
 

@@ -13,8 +13,7 @@ sample_dir = Path(__file__).parent / "aflowlib_examples"
 
 
 def _all_types_in_list(lst, type):
-    """Is every item in the list with the requested type?
-    """
+    """Is every item in the list with the requested type?"""
     # If numpy array, just compare the dtype
     assert isinstance(lst, (list, np.ndarray))
     if isinstance(lst, np.ndarray):
@@ -23,9 +22,11 @@ def _all_types_in_list(lst, type):
         # assuming lst
         while True:
             try:
-                new_lst = list(itertools.chain(*[t if isinstance(t, (tuple, list))
-                                                 else [t]
-                                                 for t in lst]))
+                new_lst = list(
+                    itertools.chain(
+                        *[t if isinstance(t, (tuple, list)) else [t] for t in lst]
+                    )
+                )
             except TypeError:
                 break
             if new_lst == lst:
@@ -53,10 +54,8 @@ def test_caster_json():
     assert type(cast(KJ.spin_cell, "-0")) == float
 
     # Test scientific notation
-    assert cast(KJ.delta_electronic_energy_convergence,
-                2.20696e-07) == 2.20696e-7
-    assert cast(KJ.delta_electronic_energy_convergence,
-                "2.20696e-07") == 2.20696e-7
+    assert cast(KJ.delta_electronic_energy_convergence, 2.20696e-07) == 2.20696e-7
+    assert cast(KJ.delta_electronic_energy_convergence, "2.20696e-07") == 2.20696e-7
 
     # species, should return list of strings
     assert cast(KJ.species, ["Ca", "O", "Si"]) == ["Ca", "O", "Si"]
@@ -64,9 +63,9 @@ def test_caster_json():
 
     # Should return list of float instead of int
     assert _all_types_in_list(
-        cast(KJ.spinD, [0, -0, -0, -0, -0, 0, 0, -0, 0, 0, 0, -0]), float)
-    assert _all_types_in_list(
-        cast(KJ.spinD, "0,-0,-0,-0,-0,0,0,-0,0,0,0,-0"), float)
+        cast(KJ.spinD, [0, -0, -0, -0, -0, 0, 0, -0, 0, 0, 0, -0]), float
+    )
+    assert _all_types_in_list(cast(KJ.spinD, "0,-0,-0,-0,-0,0,0,-0,0,0,0,-0"), float)
 
     # species_pp_ZVAL, should return list of int
     assert _all_types_in_list(cast(KJ.species_pp_ZVAL, [11, 5, 9, 6]), int)
@@ -75,11 +74,13 @@ def test_caster_json():
     # some experimental setup
     assert cast(KJ.Wyckoff_letters, "a;c;b") == ["a", "c", "b"]
 
-    pos = [[0, 0, 0],
-           [0, 1.93491, 1.93491],
-           [1.93491, 0, 1.93491],
-           [1.93491, 1.93491, 0],
-           [1.93491, 1.93491, 1.93491]]
+    pos = [
+        [0, 0, 0],
+        [0, 1.93491, 1.93491],
+        [1.93491, 0, 1.93491],
+        [1.93491, 1.93491, 0],
+        [1.93491, 1.93491, 1.93491],
+    ]
     pos_string = "0,0,0;0,1.93491,1.93491;1.93491,0,1.93491;1.93491,1.93491,0;1.93491,1.93491,1.93491"
 
     assert _all_types_in_list(cast(KJ.positions_cartesian, pos), float)
@@ -93,8 +94,15 @@ def test_caster_json():
 
     # Deprecated fields, no conversion
     assert type(cast(KJ.stoich, "0.2000 0.2000 0.6000")) == str
-    assert type(cast(KJ.kpoints,
-                     r"11,11,11;13,13,13;\Gamma-X,X-M,M-\Gamma,\Gamma-R,R-X,M-R;20")) == str
+    assert (
+        type(
+            cast(
+                KJ.kpoints,
+                r"11,11,11;13,13,13;\Gamma-X,X-M,M-\Gamma,\Gamma-R,R-X,M-R;20",
+            )
+        )
+        == str
+    )
 
 
 def _read_file(filename, format="json"):
@@ -116,7 +124,7 @@ def _read_file(filename, format="json"):
             cls = getattr(KJ, key)
             if cls.status == "deprecated":
                 continue
-            if value is None:   # None value can also occur
+            if value is None:  # None value can also occur
                 continue
             if cls.ptype in (float, int, str):
                 assert isinstance(value, cls.ptype)
@@ -127,10 +135,9 @@ def _read_file(filename, format="json"):
             print(key, value, "Not recognized")
 
 
-
 def test_auto_load():
-    """Test on all example files downloaded from AFLOW 
-       catalog: ICSD, LIB1 ~ LIB6
+    """Test on all example files downloaded from AFLOW
+    catalog: ICSD, LIB1 ~ LIB6
     """
     # Use aflowlib.json format
     for fname in sample_dir.glob("*.json"):
@@ -142,6 +149,6 @@ def test_auto_load():
         print(fname)
         _read_file(fname, format="out")
 
-if __name__ == '__main__':
-    test_auto_load()
 
+if __name__ == "__main__":
+    test_auto_load()

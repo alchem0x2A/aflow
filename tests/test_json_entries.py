@@ -33,6 +33,7 @@ def _read_json(filename):
     assert isinstance(entry.species, list)
     return
 
+
 def _read_out(filename):
     with open(filename, "r") as fd:
         strings = fd.readline().split("|")
@@ -59,9 +60,10 @@ def _read_out(filename):
     assert isinstance(entry.species, list)
     return
 
+
 def test_all():
-    """Test on all example files downloaded from AFLOW 
-       catalog: ICSD, LIB1 ~ LIB6
+    """Test on all example files downloaded from AFLOW
+    catalog: ICSD, LIB1 ~ LIB6
     """
     # Use aflowlib.json format
     for fname in sample_dir.glob("*.json"):
@@ -72,4 +74,3 @@ def test_all():
     for fname in sample_dir.glob("*.out"):
         print(fname)
         _read_out(fname)
-

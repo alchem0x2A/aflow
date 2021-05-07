@@ -8,7 +8,7 @@ from aflow.msg import err, warn
 
 
 def _val_from_str(attr, value):
-    """Retrieves the specified attribute's value 
+    """Retrieves the specified attribute's value
     and handle using the cast function
     """
     # clsname = "_{}".format(attr)
@@ -137,9 +137,8 @@ class Entry(object):
           values).
     """
 
-
     def __getattribute__(self, keyword):
-        if (keyword in kw.all_keywords) and (keyword not in  ("files", "keywords")):
+        if (keyword in kw.all_keywords) and (keyword not in ("files", "keywords")):
             return self._lazy_load(keyword)
         else:
             return super(Entry, self).__getattribute__(keyword)
@@ -163,7 +162,6 @@ class Entry(object):
 
     def __hash__(self):
         return hash(self.auid)
-
 
     def _lazy_load(self, keyword):
         """Loads the value of the specified keyword via HTTP request against the
@@ -207,16 +205,20 @@ class Entry(object):
             return result
 
     def atoms(
-        self, pattern=r"CONTCAR\.relax[^\.]\d?", quippy=False, keywords=None, calculator=None
+        self,
+        pattern=r"CONTCAR\.relax[^\.]\d?",
+        quippy=False,
+        keywords=None,
+        calculator=None,
     ):
         """Creates a :class:`ase.atoms.Atoms` or a :class:`quippy.atoms.Atoms`
         object for this database entry.
 
         Args:
             pattern (str): pattern for choosing the file to generate the atomic
-              lattice and positions from. 
-              The filename is checked against the regex string in pattern. 
-              The default value here represents files "CONTCAR.relax", "CONTCAR.relax1", 
+              lattice and positions from.
+              The filename is checked against the regex string in pattern.
+              The default value here represents files "CONTCAR.relax", "CONTCAR.relax1",
               "CONTCAR.relax2" etc. Only the last match will be returned.
             quippy (bool): when True, return a :class:`quippy.atoms.Atoms`
               object.
@@ -244,9 +246,9 @@ class Entry(object):
         # Priority: CONTCAR.relax2 --> CONTCAR.relax1 --> CONTCAR.relax
         matches = sorted([f for f in self.files if re.match(pattern, f)])
         if len(matches) == 0:
-            err(f"The pattern \"{pattern}\" does not find any matching files!")
+            err(f'The pattern "{pattern}" does not find any matching files!')
             return None
-        target = matches[-1]    # Last entry
+        target = matches[-1]  # Last entry
         aurl = self.attributes["aurl"].replace(".edu:", ".edu/")
         url = "http://{0}/{1}".format(aurl, target)
 
@@ -303,8 +305,8 @@ class Entry(object):
 
         Note: since the `keywords` field is deprecated in aflowlib,
         lazy loading `aflowlib.json` won't give include it.
-        Instead, first try to lazy load a keyword and use `self.attributes` 
-        to determine the keywords           
+        Instead, first try to lazy load a keyword and use `self.attributes`
+        to determine the keywords
         """
         # this query will return None...
         self._lazy_load("keywords")
@@ -317,9 +319,6 @@ class Entry(object):
     # @property
     # def Bravais_lattice_orig(self):
     #     """original bravais lattice (`optional`). Units: ``.
-
-
-
 
     #     Returns:
     #         str: Returns the Bravais lattice of the original unrelaxed structure before the calculation.
@@ -334,7 +333,6 @@ class Entry(object):
     # @property
     # def Bravais_lattice_relax(self):
     #     """relaxed bravais lattice (`optional`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -358,7 +356,6 @@ class Entry(object):
     # def Egap(self):
     #     """electronic energy band gap (`mandatory`). Units: `eV`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -378,7 +375,6 @@ class Entry(object):
     # @property
     # def Egap_fit(self):
     #     """fitted band gap (`mandatory`). Units: `eV`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -400,7 +396,6 @@ class Entry(object):
     # def Egap_type(self):
     #     """band gap type (`mandatory`). Units: ``.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -420,7 +415,6 @@ class Entry(object):
     # @property
     # def PV_atom(self):
     #     """atomic pressure*volume (`mandatory`). Units: `eV/atom`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -442,7 +436,6 @@ class Entry(object):
     # def PV_cell(self):
     #     """unit cell pressure*volume (`mandatory`). Units: `eV`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -463,9 +456,6 @@ class Entry(object):
     # def Pearson_symbol_orig(self):
     #     """original Pearson symbol (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Returns the Pearson symbol of the original-unrelaxed structure before the calculation.
 
@@ -479,7 +469,6 @@ class Entry(object):
     # @property
     # def Pearson_symbol_relax(self):
     #     """relaxed Pearson symbol (`mandatory`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -503,7 +492,6 @@ class Entry(object):
     #     .. warning:: This keyword is still listed as development level. Use it
     #       knowing that it is subject to change or removal.
 
-
     #     Returns:
     #         float: Returns a metric of the basis set inconsistency for the calculation.
 
@@ -517,7 +505,6 @@ class Entry(object):
     # @property
     # def ael_bulk_modulus_reuss(self):
     #     """AEL Reuss bulk modulus (`optional`). Units: `GPa`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -539,7 +526,6 @@ class Entry(object):
     # def ael_bulk_modulus_voigt(self):
     #     """AEL Voigt bulk modulus (`optional`). Units: `GPa`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -559,7 +545,6 @@ class Entry(object):
     # @property
     # def ael_bulk_modulus_vrh(self):
     #     """AEL VRH bulk modulus (`optional`). Units: `GPa`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -581,7 +566,6 @@ class Entry(object):
     # def ael_elastic_anisotropy(self):
     #     """AEL elastic anisotropy (`optional`). Units: ``.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -601,7 +585,6 @@ class Entry(object):
     # @property
     # def ael_poisson_ratio(self):
     #     """AEL Poisson ratio (`optional`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -623,7 +606,6 @@ class Entry(object):
     # def ael_shear_modulus_reuss(self):
     #     """AEL Reuss shear modulus (`optional`). Units: `GPa`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -643,7 +625,6 @@ class Entry(object):
     # @property
     # def ael_shear_modulus_voigt(self):
     #     """AEL Voigt shear modulus (`optional`). Units: `GPa`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -665,7 +646,6 @@ class Entry(object):
     # def ael_shear_modulus_vrh(self):
     #     """AEL VRH shear modulus (`optional`). Units: `GPa`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -686,9 +666,6 @@ class Entry(object):
     # def aflow_version(self):
     #     """aflow version (`optional`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Returns the version number of AFLOW used to perform the calculation.
 
@@ -702,9 +679,6 @@ class Entry(object):
     # @property
     # def aflowlib_date(self):
     #     """material generation date (`optional`). Units: ``.
-
-
-
 
     #     Returns:
     #         str: Returns the date of the AFLOW post-processor which generated the entry for the library.
@@ -720,9 +694,6 @@ class Entry(object):
     # def aflowlib_version(self):
     #     """aflowlib version (`optional`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Returns the version of the AFLOW post-processor which generated the entry for the library.
 
@@ -736,7 +707,6 @@ class Entry(object):
     # @property
     # def agl_acoustic_debye(self):
     #     """AGL acoustic Debye temperature (`optional`). Units: `K`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -758,7 +728,6 @@ class Entry(object):
     # def agl_bulk_modulus_isothermal_300K(self):
     #     """AGL isothermal bulk modulus 300K (`optional`). Units: `GPa`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -778,7 +747,6 @@ class Entry(object):
     # @property
     # def agl_bulk_modulus_static_300K(self):
     #     """AGL static bulk modulus 300K (`optional`). Units: `GPa`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -800,7 +768,6 @@ class Entry(object):
     # def agl_debye(self):
     #     """AGL Debye temperature (`optional`). Units: `K`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -820,7 +787,6 @@ class Entry(object):
     # @property
     # def agl_gruneisen(self):
     #     """AGL Gruneisen parameter (`optional`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -842,7 +808,6 @@ class Entry(object):
     # def agl_heat_capacity_Cp_300K(self):
     #     """AGL heat capacity Cp (`optional`). Units: `kB/cell`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -862,7 +827,6 @@ class Entry(object):
     # @property
     # def agl_heat_capacity_Cv_300K(self):
     #     """AGL heat capacity Cv (`optional`). Units: `kB/cell`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -884,7 +848,6 @@ class Entry(object):
     # def agl_thermal_conductivity_300K(self):
     #     """AGL thermal conductivity (`optional`). Units: `W/m*K`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -904,7 +867,6 @@ class Entry(object):
     # @property
     # def agl_thermal_expansion_300K(self):
     #     """AGL thermal expansion (`optional`). Units: `1/K`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -926,9 +888,6 @@ class Entry(object):
     # def auid(self):
     #     """AFLOWLIB Unique Identifier (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: AFLOWLIB Unique Identifier for the entry, AUID, which can be used as a publishable object identifier.
 
@@ -943,9 +902,6 @@ class Entry(object):
     # def aurl(self):
     #     """AFLOWLIB Uniform Resource Locator (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: AFLOWLIB Uniform Resource Locator returns the AURL of the entry.
 
@@ -959,7 +915,6 @@ class Entry(object):
     # @property
     # def bader_atomic_volumes(self):
     #     """atomic volume per atom (`optional`). Units: `&Aring;<sup>3</sup>`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -981,7 +936,6 @@ class Entry(object):
     # def bader_net_charges(self):
     #     """partial charge per atom (`optional`). Units: `electrons`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1001,7 +955,6 @@ class Entry(object):
     # @property
     # def calculation_cores(self):
     #     """used CPU cores (`optional`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1023,7 +976,6 @@ class Entry(object):
     # def calculation_memory(self):
     #     """used RAM (`optional`). Units: `Megabytes`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1043,7 +995,6 @@ class Entry(object):
     # @property
     # def calculation_time(self):
     #     """used time (`optional`). Units: `seconds`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1065,9 +1016,6 @@ class Entry(object):
     # def catalog(self):
     #     """catalog (`optional`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Returns the context set for the calculation.
 
@@ -1081,9 +1029,6 @@ class Entry(object):
     # @property
     # def code(self):
     #     """ab initio code (`optional`). Units: ``.
-
-
-
 
     #     Returns:
     #         str: Returns the software name and version used to perform the simulation.
@@ -1099,9 +1044,6 @@ class Entry(object):
     # def composition(self):
     #     """composition (`optional`). Units: ``.
 
-
-
-
     #     Returns:
     #         list: Returns a comma delimited composition description of the structure entry in the calculated cell.
 
@@ -1115,9 +1057,6 @@ class Entry(object):
     # @property
     # def compound(self):
     #     """chemical formula (`mandatory`). Units: ``.
-
-
-
 
     #     Returns:
     #         str: Returns the composition description of the compound in the calculated cell.
@@ -1133,9 +1072,6 @@ class Entry(object):
     # def data_api(self):
     #     """REST API version (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: AFLOWLIB version of the entry, API.}
 
@@ -1149,9 +1085,6 @@ class Entry(object):
     # @property
     # def data_source(self):
     #     """data source (`optional`). Units: ``.
-
-
-
 
     #     Returns:
     #         list: Gives the source of the data in AFLOWLIB.
@@ -1170,7 +1103,6 @@ class Entry(object):
     #     .. warning:: This keyword is still listed as development level. Use it
     #       knowing that it is subject to change or removal.
 
-
     #     Returns:
     #         float: Returns the change in energy from the last step of the convergence iteration.
 
@@ -1188,7 +1120,6 @@ class Entry(object):
     #     .. warning:: This keyword is still listed as development level. Use it
     #       knowing that it is subject to change or removal.
 
-
     #     Returns:
     #         float: Returns the maximimum change in energy required for the convergence iteration.
 
@@ -1202,7 +1133,6 @@ class Entry(object):
     # @property
     # def density(self):
     #     """mass density (`optional`). Units: `grams/cm<sup>3</sup>`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1226,9 +1156,6 @@ class Entry(object):
     # def dft_type(self):
     #     """DFT type (`optional`). Units: ``.
 
-
-
-
     #     Returns:
     #         list: Returns information about the pseudopotential type, the exchange correlation functional used (normal or hybrid) and use of GW.
 
@@ -1242,7 +1169,6 @@ class Entry(object):
     # @property
     # def eentropy_atom(self):
     #     """atomistic electronic entropy (`optional`). Units: `eV/atom`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1264,7 +1190,6 @@ class Entry(object):
     # def eentropy_cell(self):
     #     """unit cell electronic entropy (`optional`). Units: `eV/atom`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1284,7 +1209,6 @@ class Entry(object):
     # @property
     # def energy_atom(self):
     #     """atomic energy (`mandatory`). Units: `eV/atom`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1308,7 +1232,6 @@ class Entry(object):
     # def energy_cell(self):
     #     """unit cell energy (`mandatory`). Units: `eV`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1331,9 +1254,6 @@ class Entry(object):
     # def energy_cutoff(self):
     #     """energy cutoff (`optional`). Units: `eV`.
 
-
-
-
     #     Returns:
     #         list: Set of energy cut-offs used during the various steps of the calculations.
 
@@ -1347,7 +1267,6 @@ class Entry(object):
     # @property
     # def enthalpy_atom(self):
     #     """atomic enthalpy (`mandatory`). Units: `eV/atom`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1371,7 +1290,6 @@ class Entry(object):
     # def enthalpy_cell(self):
     #     """unit cell enthalpy (`mandatory`). Units: `eV`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1394,7 +1312,6 @@ class Entry(object):
     # def enthalpy_formation_atom(self):
     #     """atomic formation enthalpy (`mandatory`). Units: `eV/atom`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1415,7 +1332,6 @@ class Entry(object):
     # def enthalpy_formation_cell(self):
     #     """unit cell formation enthalpy (`mandatory`). Units: `eV`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1435,7 +1351,6 @@ class Entry(object):
     # @property
     # def entropic_temperature(self):
     #     """entropic temperature (`mandatory`). Units: `Kelvin`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1479,7 +1394,6 @@ class Entry(object):
     # def geometry(self):
     #     """unit cell basis (`mandatory`). Units: `&Aring;`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1498,14 +1412,9 @@ class Entry(object):
     #     """
     #     return self._lazy_load("geometry")
 
-    
-
     # @property
     # def kpoints(self):
     #     """K-point mesh (`optional`). Units: ``.
-
-
-
 
     #     Returns:
     #         dict: Set of k-point meshes uniquely identifying the various steps of the calculations, e.g. relaxation, static and electronic band structure (specifying the k-space symmetry points of the structure).
@@ -1521,9 +1430,6 @@ class Entry(object):
     # def lattice_system_orig(self):
     #     """original lattice system (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Return the lattice system and lattice variation (Brillouin zone) of the original-unrelaxed structure before the calculation.
 
@@ -1537,7 +1443,6 @@ class Entry(object):
     # @property
     # def lattice_system_relax(self):
     #     """relaxed lattice system (`mandatory`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1561,9 +1466,6 @@ class Entry(object):
     # def lattice_variation_orig(self):
     #     """original lattice variation (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Return the lattice system and lattice variation (Brillouin zone) of the original-unrelaxed structure before the calculation.
 
@@ -1577,7 +1479,6 @@ class Entry(object):
     # @property
     # def lattice_variation_relax(self):
     #     """relaxed lattice variation (`mandatory`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1604,7 +1505,6 @@ class Entry(object):
     #     .. warning:: This keyword is still listed as development level. Use it
     #       knowing that it is subject to change or removal.
 
-
     #     Returns:
     #         list: This vector of numbers contains the parameters of the DFT+U calculations, based on a corrective functional inspired by the Hubbard model.
 
@@ -1618,9 +1518,6 @@ class Entry(object):
     # @property
     # def loop(self):
     #     """process category (`optional`). Units: ``.
-
-
-
 
     #     Returns:
     #         list: Informs the user of the type of post-processing that was performed.
@@ -1636,9 +1533,6 @@ class Entry(object):
     # def natoms(self):
     #     """number of atoms in unit cell (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         float: Returns the number of atoms in the unit cell of the structure entry. The number can be non integer if partial occupation is considered within appropriate approximations.
 
@@ -1652,7 +1546,6 @@ class Entry(object):
     # @property
     # def nbondxx(self):
     #     """nearest neighbor bond lengths (`optional`). Units: `&Aring;`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1677,9 +1570,6 @@ class Entry(object):
     # def node_CPU_Cores(self):
     #     """available CPU cores (`optional`). Units: ``.
 
-
-
-
     #     Returns:
     #         float: Information about the number of cores in the node/cluster where the calculation was performed.
 
@@ -1693,9 +1583,6 @@ class Entry(object):
     # @property
     # def node_CPU_MHz(self):
     #     """CPU rate (`optional`). Units: `Megahertz`.
-
-
-
 
     #     Returns:
     #         float: Information about the CPU speed in the node/cluster where the calculation was performed.
@@ -1711,9 +1598,6 @@ class Entry(object):
     # def node_CPU_Model(self):
     #     """CPU model (`optional`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Information about the CPU model in the node/cluster where the calculation was performed.
 
@@ -1728,9 +1612,6 @@ class Entry(object):
     # def node_RAM_GB(self):
     #     """available RAM (`optional`). Units: `Gigabytes`.
 
-
-
-
     #     Returns:
     #         float: Information about the RAM in the node/cluster where the calculation was performed.
 
@@ -1744,9 +1625,6 @@ class Entry(object):
     # @property
     # def nspecies(self):
     #     """species count (`mandatory`). Units: ``.
-
-
-
 
     #     Returns:
     #         float: Returns the number of species in the system (e.g., binary = 2, ternary = 3, etc.).
@@ -1812,9 +1690,6 @@ class Entry(object):
     # def pressure(self):
     #     """external pressure (`mandatory`). Units: `kbar`.
 
-
-
-
     #     Returns:
     #         float: Returns the target pressure selected for the simulation.
 
@@ -1832,7 +1707,6 @@ class Entry(object):
     #     .. warning:: This keyword is still listed as development level. Use it
     #       knowing that it is subject to change or removal.
 
-
     #     Returns:
     #         float: Returns the external pressure achieved by the simulation.
 
@@ -1847,9 +1721,6 @@ class Entry(object):
     # def prototype(self):
     #     """original prototype (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         str: Returns the AFLOW unrelaxed prototype which was used for the calculation.
 
@@ -1863,7 +1734,6 @@ class Entry(object):
     # @property
     # def scintillation_attenuation_length(self):
     #     """attenuation length (`mandatory`). Units: `cm`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1884,7 +1754,6 @@ class Entry(object):
     # @property
     # def sg(self):
     #     """space group of compound (`mandatory`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1908,7 +1777,6 @@ class Entry(object):
     # def sg2(self):
     #     """refined space group of compound  (`mandatory`). Units: ``.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -1931,9 +1799,6 @@ class Entry(object):
     # def spacegroup_orig(self):
     #     """original space group number (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         float: Returns the spacegroup number of the original-unrelaxed structure before the calculation.
 
@@ -1947,7 +1812,6 @@ class Entry(object):
     # @property
     # def spacegroup_relax(self):
     #     """relaxed space group number (`mandatory`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -1971,9 +1835,6 @@ class Entry(object):
     # def species(self):
     #     """atomic species (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         list: Species of the atoms in this material.
 
@@ -1987,9 +1848,6 @@ class Entry(object):
     # @property
     # def species_pp(self):
     #     """pseudopotential of chemical speciess (`mandatory`). Units: ``.
-
-
-
 
     #     Returns:
     #         list: Pseudopotentials of the atomic species.
@@ -2005,9 +1863,6 @@ class Entry(object):
     # def species_pp_ZVAL(self):
     #     """valence atoms per species (`optional`). Units: `electrons`.
 
-
-
-
     #     Returns:
     #         list: Returns the number of valence electrons of the atomic species.
 
@@ -2022,9 +1877,6 @@ class Entry(object):
     # def species_pp_version(self):
     #     """pseudopotential version and species (`mandatory`). Units: ``.
 
-
-
-
     #     Returns:
     #         list: Species of the atoms, pseudopotentials species, and pseudopotential versions.
 
@@ -2038,7 +1890,6 @@ class Entry(object):
     # @property
     # def spinD(self):
     #     """spin decomposition over unit cell (`mandatory`). Units: `&mu;<sub>B</sub>`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -2060,7 +1911,6 @@ class Entry(object):
     # def spinF(self):
     #     """magnetization of unit cell at Fermi level (`mandatory`). Units: `&mu;<sub>B</sub>`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -2081,7 +1931,6 @@ class Entry(object):
     # def spin_atom(self):
     #     """atomic spin polarization (`mandatory`). Units: `&mu;<sub>B</sub>/atom`.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -2101,7 +1950,6 @@ class Entry(object):
     # @property
     # def spin_cell(self):
     #     """unit cell spin polarization (`mandatory`). Units: `&mu;<sub>B</sub>`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -2145,7 +1993,6 @@ class Entry(object):
     # def stoichiometry(self):
     #     """unit cell stoichiometry (`mandatory`). Units: ``.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -2169,7 +2016,6 @@ class Entry(object):
     #     .. warning:: This keyword is still listed as development level. Use it
     #       knowing that it is subject to change or removal.
 
-
     #     Returns:
     #         list: Returns the stress tensor of the completed calculation.
 
@@ -2183,7 +2029,6 @@ class Entry(object):
     # @property
     # def valence_cell_iupac(self):
     #     """unit cell IUPAC valence (`mandatory`). Units: ``.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -2205,7 +2050,6 @@ class Entry(object):
     # def valence_cell_std(self):
     #     """unit cell standard valence (`mandatory`). Units: ``.
 
-
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
 
@@ -2225,7 +2069,6 @@ class Entry(object):
     # @property
     # def volume_atom(self):
     #     """atomic volume (`mandatory`). Units: `&Aring;<sup>3</sup>/atom`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.
@@ -2249,7 +2092,6 @@ class Entry(object):
     # @property
     # def volume_cell(self):
     #     """unit cell volume (`mandatory`). Units: `&Aring;<sup>3</sup>`.
-
 
     #     .. note:: The following verifications are available for this
     #       keyword. They are exposed as additional methods on this object.

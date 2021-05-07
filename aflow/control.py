@@ -196,15 +196,23 @@ class Query(object):
 
     def set_manual_matchbook(self, matchbook):
         """Statelessly set the matchbook string part of the aflow query
-           set the self._matchbook to matchbook and make it final
-           matchbook should be a string.
+        set the self._matchbook to matchbook and make it final
+        matchbook should be a string.
 
-           The method does not enforce type check. 
-           Use it only when the default keyword method messes up
+        The method does not enforce type check.
+        Use it only when the default keyword method messes up
         """
-        forbidden_chars = ("\"", "@", "\\", "~", "/")  # characters that will cause LUX crash
+        forbidden_chars = (
+            '"',
+            "@",
+            "\\",
+            "~",
+            "/",
+        )  # characters that will cause LUX crash
         if any([c in matchbook for c in forbidden_chars]):
-            raise ValueError(f"The manual matchbook cannot contain the following characters: {forbidden_chars}")
+            raise ValueError(
+                f"The manual matchbook cannot contain the following characters: {forbidden_chars}"
+            )
         else:
             self._matchbook = matchbook
             self._final = True

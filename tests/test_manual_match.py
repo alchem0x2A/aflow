@@ -7,6 +7,7 @@ from random import shuffle
 from aflow.control import Query
 import numpy as np
 
+
 def _query_string(string):
     query = Query(batch_size=20).set_manual_matchbook(string)
     assert query.matchbook() == string
@@ -14,11 +15,14 @@ def _query_string(string):
 
 
 def test_all():
-    query_strings = ["nspecies(2),species('O','Si')",
-                     "Egap(1.0*,*1.1)",]
+    query_strings = [
+        "nspecies(2),species('O','Si')",
+        "Egap(1.0*,*1.1)",
+    ]
     for string in query_strings:
         _query_string(string)
     # assert len(query) != 0
+
 
 # sample_dir = Path(__file__).parent / "aflowlib_examples"
 
@@ -48,4 +52,3 @@ def test_all():
 #     for fname in sample_dir.glob("*.json"):
 #         print(fname)
 #         _read(fname)
-
