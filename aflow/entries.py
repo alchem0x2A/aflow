@@ -155,7 +155,7 @@ class Entry(object):
     #     """
 
     def __getattribute__(self, keyword):
-        if (keyword in kw.all_keywords) and (keyword != "files"):
+        if (keyword in kw.all_keywords) and (keyword not in  ("files", "keywords")):
             return self._lazy_load(keyword)
         else:
             return super(Entry, self).__getattribute__(keyword)
@@ -306,6 +306,23 @@ class Entry(object):
         if self._files is None:
             self._files = AflowFiles(self)
         return self._files
+
+    @property
+    def keywords(self):
+        """All the available keywords in the current entry
+
+        Note: since the `keywords` field is deprecated in aflowlib,
+        lazy loading `aflowlib.json` won't give include it.
+        Instead, first try to lazy load a keyword and use `self.attributes` 
+        to determine the keywords           
+        """
+        # this query will return None...
+        self._lazy_load("keywords")
+        # for backward compatibility, add keywords into the list
+        kws = list(self.attributes.keys())
+        if "keywords" not in kws:
+            kws.append("keywords")
+        return kws
 
     # @property
     # def Bravais_lattice_orig(self):
@@ -1491,23 +1508,7 @@ class Entry(object):
     #     """
     #     return self._lazy_load("geometry")
 
-    # @property
-    # def keywords(self):
-    #     """Title (`mandatory`). Units: ``.
-
-    #     .. warning:: This keyword is still listed as development level. Use it
-    #       knowing that it is subject to change or removal.
-
-
-    #     Returns:
-    #         list: This includes the list of keywords available in the entry, separated by commas.
-
-    #     Examples:
-    #         You can expect the *content* of the result to be something like:
-
-    #         `keywords=aurl,auid,loop,code,compound,prototype,nspecies,natoms,...`
-    #     """
-    #     return self._lazy_load("keywords")
+    
 
     # @property
     # def kpoints(self):

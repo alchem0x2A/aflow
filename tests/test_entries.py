@@ -103,12 +103,12 @@ def test_lazy():
     assert A.Egap == 7.4494
     assert A.agl_thermal_conductivity_300K == 53.361
     assert A.energy_atom == -7.10342
-    assert A.catalog == 'ICSD\n'
+    assert A.catalog == 'ICSD'
 
     assert B.Egap == 6.6252
     assert B.agl_thermal_conductivity_300K == 7.45279
     assert B.volume_cell == 56.9766
-    assert B.catalog == 'ICSD\n'
+    assert B.catalog == 'ICSD'
 
 def test_all():
     """Tests all retrievals for a given entry, including those it
@@ -130,14 +130,16 @@ def test_all():
     ]
     from aflow.entries import Entry
     from aflow import list_keywords
+    from aflow.keywords_json import all_keywords
 
     for entry_vals in entries:
         A = Entry(**entry_vals)
-        kws = list_keywords()
+        kws = all_keywords
         kws.append('catalog')
         haskw = A.keywords
 
         for kw in kws:
+            print(kw)
             if kw in haskw:
                 assert getattr(A, kw) is not None
             else:
