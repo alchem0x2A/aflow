@@ -4,6 +4,7 @@ python.
 # import aflow.keywords as kw
 import aflow.keywords_json as kw
 from aflow.caster_new import cast
+from aflow.msg import err, warn
 
 
 def _val_from_str(attr, value):
@@ -137,23 +138,6 @@ class Entry(object):
     """
 
 
-    """ Add all known keywords in the aflow.keywords as
-        dynamic property 
-    """
-    
-    
-    # for keyword in kw.all_keywords:
-    #     if keyword != "files":
-    #         vars()[keyword] = property(fget=_loaders[keyword],
-    #                                    fset=None, fdel=None,)
-                                       # doc=getattr(kw, keyword).__doc__)
-    #     else:
-    #         print(keyword)
-
-    # def __get__(self, keyword):
-    #     """ Invoke the lazy load function with desired keyword
-    #     """
-
     def __getattribute__(self, keyword):
         if (keyword in kw.all_keywords) and (keyword not in  ("files", "keywords")):
             return self._lazy_load(keyword)
@@ -223,17 +207,17 @@ class Entry(object):
             return result
 
     def atoms(
-        self, pattern="CONTCAR.relax*", quippy=False, keywords=None, calculator=None
+        self, pattern=r"CONTCAR\.relax[^\.]\d?", quippy=False, keywords=None, calculator=None
     ):
         """Creates a :class:`ase.atoms.Atoms` or a :class:`quippy.atoms.Atoms`
         object for this database entry.
 
         Args:
             pattern (str): pattern for choosing the file to generate the atomic
-              lattice and positions from. The pattern is passed to
-              :func:`~fnmatch.fnmatch` and the *last* entry in the list is
-              returned (so that `CONTCAR.relax2` would be returned
-              preferentially over `CONTCAR.relax1` or `CONTCAR.relax`).
+              lattice and positions from. 
+              The filename is checked against the regex string in pattern. 
+              The default value here represents files "CONTCAR.relax", "CONTCAR.relax1", 
+              "CONTCAR.relax2" etc. Only the last match will be returned.
             quippy (bool): when True, return a :class:`quippy.atoms.Atoms`
               object.
             keywords (dict): keys are keyword obects accessible from `aflow.K`;
@@ -254,9 +238,15 @@ class Entry(object):
         if self._atoms is not None:
             return self._atoms
 
-        from fnmatch import fnmatch
+        # from fnmatch import fnmatch
+        import re
 
-        target = [f for f in self.files if fnmatch(f, pattern)][-1]
+        # Priority: CONTCAR.relax2 --> CONTCAR.relax1 --> CONTCAR.relax
+        matches = sorted([f for f in self.files if re.match(pattern, f)])
+        if len(matches) == 0:
+            err(f"The pattern \"{pattern}\" does not find any matching files!")
+            return None
+        target = matches[-1]    # Last entry
         aurl = self.attributes["aurl"].replace(".edu:", ".edu/")
         url = "http://{0}/{1}".format(aurl, target)
 
