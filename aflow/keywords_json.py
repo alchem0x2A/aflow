@@ -122,10 +122,13 @@ def dynamic_class_creation(name, base=object):
                           status=status,)
                      )
     return new_class
-    
+
+all_keywords = []
 # Dynamically create keywords classes based on the name
 for name in aapi_schema["AAPI_schema"].keys():
     new_class = dynamic_class_creation(name, base=Keyword)
+    if new_class:
+        all_keywords.append(name)
     if new_class is not None:
         vars()[name] = new_class
 
