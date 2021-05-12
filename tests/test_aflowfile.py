@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from random import shuffle
 from aflow.entries import Entry, AflowFile, AflowFiles
+from aflow.msg import warn
 
 curdir = Path(__file__).parent
 
@@ -18,15 +19,20 @@ with open(curdir / "data_big.json", "r") as fd:
 def test_query_files(batch=10):
     """test on randomly sampled entries"""
     shuffle(raw_entries)
-    for entry in raw_entries[:batch]:
-        aurl = entry["aurl"]
-        print(aurl)
+    for e in raw_entries[:batch]:
+        entry = Entry(**e)
+        print(entry.aurl)
         # Read the CONTCAR.relax, which should always present
-        afile = AflowFile(aurl, "CONTCAR.relax")
-        assert "CONTCAR.relax" in afile.filename
-        # read the content, watch for HTTP404 error
-        content = afile()
-        print(aurl, content)
+        afile = AflowFile(entry.aurl, "CONTCAR.relax")
+        if "CONTCAR.relax" not in entry.files:
+            warn(f"{aurl} does not contain CONTCAR.relax file, probably a MD calculation")
+            continue
+        else:
+            assert "CONTCAR.relax" in afile.filename
+            # read the content, watch for HTTP404 error
+            # hope no http404 error
+            content = afile()
+            print(content)
 
 
 def test_aurl_with_colon():
@@ -34,12 +40,18 @@ def test_aurl_with_colon():
     # Series with aurl that contain 0 ~ 3 colons after the edu domain name
     for ncolon in range(4):
         shuffle(raw_entries)
-        for entry in raw_entries:
-            aurl = entry["aurl"]
+        for e in raw_entries:
+            entry = Entry(**e)
+            aurl = entry.aurl
+            print(entry.aurl)
             # edu:xx --> 2
             if len(aurl.split(":")) == ncolon + 2:
                 afile = AflowFile(aurl, "CONTCAR.relax")
-                assert "CONTCAR.relax" in afile.filename
-                content = afile()
-                print(aurl, content)
-                break
+                if "CONTCAR.relax" not in entry.files:
+                    warn(f"{aurl} does not contain CONTCAR.relax file, probably a MD calculation")
+                    continue
+                else:
+                    assert "CONTCAR.relax" in afile.filename
+                    content = afile()
+                    print(content)
+                    break
