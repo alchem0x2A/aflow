@@ -59,7 +59,7 @@ def _join_children(expr, child_strings):
         full_string = char.join(child_strings)
         return full_string
     else:
-        print(expr, expr.func, child_strings)
+        # print(expr, expr.func, child_strings)
         if len(child_strings) != 1:
             raise ValueError("children numbers should be less than 2")
         string = child_strings[0]
@@ -81,7 +81,7 @@ def _join_children(expr, child_strings):
 
         return full_string
 
-def _exp_to_strings(expr, target=sympy.Symbol("a")):
+def _expr_to_strings(expr, target=sympy.Symbol("a")):
     # Handling the expression
     func = expr.func
     args = expr.args
@@ -90,13 +90,17 @@ def _exp_to_strings(expr, target=sympy.Symbol("a")):
         if expr == target:
             return None
         else:
-            return str(expr)
+            if func == Symbol:
+                # Wrap expression using single brackets
+                return f"'{str(expr)}'"
+            else:
+                return str(expr)
     
     child_strings = []
     for arg in args:
         # get a partial string from each child
         # Handle only relational nodes
-        cstr = exp_to_strings(arg, target=target)
+        cstr = _expr_to_strings(arg, target=target)
         if cstr is None: # encounters target
             continue
         # determine the priority of operations. wrap lower priority with brackets
