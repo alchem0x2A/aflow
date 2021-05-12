@@ -9,10 +9,172 @@ import types
 from copy import deepcopy
 from aflow.msg import warn
 
-from aflow.keywords import Keyword
+# from aflow.keywords import Keyword
+import sympy
+from sympy.core.relational import Eq, Ne, Ge, Le, Gt, Lt
+from sympy import And, Not, Or, Integer, Float, Symbol
+
+from types import SimpleNamespace
 
 api_folder = Path(aflow.__file__).parent / "api"
 schema_file = api_folder / "aapi-schema.json"
+
+def _param_to_symbol(param):
+    """Convert the parameter to sympy symbol if possible
+    """
+    if isinstance(param, float):
+        return Float(param)
+    elif isinstance(param, int):
+        return Integer(param)
+    else:
+        # Just convert the string to a variable, whatever
+        return Symbol(str(param))
+
+def _expr_priority(expr):    
+    # Get priority of current expression
+    # Larger number get calculated first
+    func = expr.func
+    if func in (Symbol, Integer, Float):
+        return 99     # symbols always come first
+    # Unlike normal cases, aflow api allows reading comparison first
+    elif func in (Not,):
+        return 9
+    elif func in (Eq, Ne, Ge, Le, Gt, Lt):
+        return 8
+    elif func in (And,):
+        return 7
+    elif func in (Or,):
+        return 6
+    else:
+        raise ValueError(f"{type(func)} is not accepted in current workflow.")
+
+def _join_children(expr, child_strings):
+    func = expr.func
+    # And / or takes multiple children as inputs
+    if func in  (And, Or):
+        if func == And:
+            char = ","
+        else:
+            char = ":"
+        full_string = char.join(child_strings)
+        return full_string
+    else:
+        print(expr, expr.func, child_strings)
+        if len(child_strings) != 1:
+            raise ValueError("children numbers should be less than 2")
+        string = child_strings[0]
+        if func == Eq:
+            full_string = string
+        elif func == Ne:
+            full_string = "!" + string
+        elif func == Ge:
+            full_string = string + "*"
+        elif func == Le:
+            full_string = "*" + string
+        elif func == Gt:
+            full_string = "!*" + string
+        elif func == Lt:
+            full_string = "!" + string + "*"
+        else:
+            # Use wildcard if the operation not known
+            full_string = "*" + string + "*"
+
+        return full_string
+
+def _exp_to_strings(expr, target=sympy.Symbol("a")):
+    # Handling the expression
+    func = expr.func
+    args = expr.args
+    # Symbol or numerical are always leaf nodes
+    if func in (Symbol, Integer, Float):
+        if expr == target:
+            return None
+        else:
+            return str(expr)
+    
+    child_strings = []
+    for arg in args:
+        # get a partial string from each child
+        # Handle only relational nodes
+        cstr = exp_to_strings(arg, target=target)
+        if cstr is None: # encounters target
+            continue
+        # determine the priority of operations. wrap lower priority with brackets
+#         if _expr_priority(arg) < _expr_priority(expr):
+#             cstr = "(" + cstr + ")"
+        if arg.func in (And, Or):
+            cstr = "(" + cstr + ")"
+        child_strings.append(cstr)
+    current_string = _join_children(expr, child_strings)
+    return current_string
+
+class Keyword(object):
+    """Represents an abstract keyword that can be sub-classed for a
+    specific material attribute. This class also represents logical
+    operators that define search queries. The combination of two
+    keywords with a logical operator produces one more keyword, but
+    which has its :attr:`state` altered.
+
+    Args:
+        state (str): current query state of this keyword (combination).
+
+    Attributes:
+        state (list): of `str` *composite* queries for this keyword (combination).
+        ptype (type): python type that values for this keyword will have.
+        name (str): keyword name to use in the AFLUX request.
+        cache (list): of `str` *simple* operator comparisons.
+        classes (set): of `str` keyword names that have been combined into the
+          current keyword.
+    """
+
+    name = ""
+    ptype = None
+    atype = None
+
+    def __init__(self):
+        """initialize the symbols
+        """
+        self.symbol = Symbol("x_" + self.name.lower())
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __str__(self):
+       return name
+
+    def __le__(self, other):
+        """Use sympy to compare
+        """
+        return Le(self.symbol, _param_to_symbol(other))
+
+    def __ge__(self, other):
+        return Ge(self.symbol, _param_to_symbol(other))
+
+    def __lt__(self, other):
+        return Lt(self.symbol, _param_to_symbol(other))
+
+    def __gt__(self, other):
+        return Gt(self.symbol, _param_to_symbol(other))
+
+    # def __mod__(self, other):
+    #     assert isinstance(other, string_types)
+    #     self.cache.append("*'{0}'*".format(other))
+    #     return self
+
+    def __eq__(self, other):
+        return Eq(self.symbol, _param_to_symbol(other))
+
+    def __ne__(self, other):
+        return Ne(self.symbol, _param_to_symbol(other))
+
+    def __and__(self, other):
+        raise NotImplementedError("Should not use AND directly with keyword")
+
+    def __or__(self, other):
+        raise NotImplementedError("Should not use OR directly with keyword")
+
+    def __invert__(self):
+        raise NotImplementedError("Should not use NOT directly with keyword")
 
 
 def download_schema():
@@ -145,7 +307,9 @@ def dynamic_class_creation(name, base=object):
     return new_class
 
 
+
 all_keywords = []
+k_dict = {}
 # Dynamically create keywords classes based on the name
 for name in aapi_schema["AAPI_schema"].keys():
     new_class = dynamic_class_creation(name, base=Keyword)
@@ -153,3 +317,9 @@ for name in aapi_schema["AAPI_schema"].keys():
         all_keywords.append(name)
     if new_class is not None:
         vars()[name] = new_class
+        # Make an instance
+        k_dict[name] = new_class()
+
+# Now the tricky part, replace the original K with our K
+# this should give equivalent K.keyword == xxx etc
+K = SimpleNamespace(**k_dict)
