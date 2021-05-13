@@ -25,7 +25,9 @@ def test_query_files(batch=10):
         # Read the CONTCAR.relax, which should always present
         afile = AflowFile(entry.aurl, "CONTCAR.relax")
         if "CONTCAR.relax" not in entry.files:
-            warn(f"{aurl} does not contain CONTCAR.relax file, probably a MD calculation")
+            warn(
+                f"{aurl} does not contain CONTCAR.relax file, probably a MD calculation"
+            )
             continue
         else:
             assert "CONTCAR.relax" in afile.filename
@@ -48,7 +50,9 @@ def test_aurl_with_colon():
             if len(aurl.split(":")) == ncolon + 2:
                 afile = AflowFile(aurl, "CONTCAR.relax")
                 if "CONTCAR.relax" not in entry.files:
-                    warn(f"{aurl} does not contain CONTCAR.relax file, probably a MD calculation")
+                    warn(
+                        f"{aurl} does not contain CONTCAR.relax file, probably a MD calculation"
+                    )
                     continue
                 else:
                     assert "CONTCAR.relax" in afile.filename

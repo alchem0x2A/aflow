@@ -14,8 +14,6 @@ from sympy import Eq, Ne, Ge, Le, Gt, Lt
 from sympy import And, Not, Or
 
 
-
-
 from types import SimpleNamespace
 
 api_folder = Path(aflow.__file__).parent / "api"
@@ -23,8 +21,7 @@ schema_file = api_folder / "aapi-schema.json"
 
 
 def _param_to_symbol(param):
-    """Convert the parameter to sympy symbol if possible
-    """
+    """Convert the parameter to sympy symbol if possible"""
     if isinstance(param, float):
         return Float(param)
     elif isinstance(param, int):
@@ -58,19 +55,17 @@ class Keyword(object):
     atype = None
 
     def __init__(self):
-        """initialize the symbols
-        """
+        """initialize the symbols"""
         self.symbol = Symbol("x_" + self.name.lower())
 
     def __hash__(self):
         return hash(self.name)
 
     def __str__(self):
-       return name
+        return name
 
     def __le__(self, other):
-        """Use sympy to compare
-        """
+        """Use sympy to compare"""
         return Le(self.symbol, _param_to_symbol(other))
 
     def __ge__(self, other):
@@ -233,10 +228,9 @@ def dynamic_class_creation(name, base=object):
     return new_class
 
 
-
 all_keywords = []
 k_dict = {}
-symb_to_keyword = {}                # mapping from variable to class name
+symb_to_keyword = {}  # mapping from variable to class name
 
 # Dynamically create keywords classes based on the name
 for name in aapi_schema["AAPI_schema"].keys():
@@ -249,7 +243,7 @@ for name in aapi_schema["AAPI_schema"].keys():
         # Make an instance
         inst_ = new_class()
         k_dict[name] = inst_
-        # put the 
+        # put the
         symb_to_keyword[inst_.symbol.name] = inst_.name
 
 # Now the tricky part, replace the original K with our K
