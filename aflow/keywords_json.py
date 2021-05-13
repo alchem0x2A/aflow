@@ -13,6 +13,7 @@ from aflow.msg import warn
 import sympy
 from sympy.core.relational import Eq, Ne, Ge, Le, Gt, Lt
 from sympy import And, Not, Or, Integer, Float, Symbol
+from sympy import simplify_logic
 
 from types import SimpleNamespace
 
@@ -48,7 +49,11 @@ def _expr_priority(expr):
     else:
         raise ValueError(f"{type(func)} is not accepted in current workflow.")
 
-def _join_children(expr, child_strings):
+def _join_children(expr, child_strings, keyword=None):
+    """Return a valid aflow string combining the operator and child strings
+       the symbol_prefix determines what to put before a keyword field
+       e.g. Op(x_keyword, value) --> x_keyword(Op(value))
+    """
     func = expr.func
     # And / or takes multiple children as inputs
     if func in  (And, Or):
@@ -57,7 +62,14 @@ def _join_children(expr, child_strings):
         else:
             char = ":"
         full_string = char.join(child_strings)
+        if keyword is not None:
+            full_string = f"{keyword}({full_string})"
         return full_string
+    elif func in (Not,):
+        if len(child_strings) != 1:
+            raise ValueError("NOT operator works on only 1 parameter")
+        full_string = child_strings[0]
+        return f"!{full_string}"
     else:
         # print(expr, expr.func, child_strings)
         if len(child_strings) != 1:
@@ -79,45 +91,60 @@ def _join_children(expr, child_strings):
             # Use wildcard if the operation not known
             # TODO: make sure we're ok
             full_string = "*" + string + "*"
-
+        if keyword is not None:
+            full_string = f"{keyword}({full_string})"
         return full_string
 
 def _num_symbols_in_expr(expr, symbol_prefix="x_"):
     """ Determine how many expressions are inside the expression
     """
     symbols = expr.free_symbols
-    valid_symbols = [s for s in symbols if s.startswith(symbol_prefix)]
-    return len(valid_symbols)
+    valid_symbols = [s for s in symbols if s.name.startswith(symbol_prefix)]
+    return len(valid_symbols), valid_symbols
     
 def _expr_to_strings(expr,
-                     target=sympy.Symbol("x_auid"),
-                     symbol_prefix="x_"):
+                     symbol_prefix="x_",
+                     simplify=False,
+                     root=True):
     """ Use expression tree to parse the symbols and return a aflow-like api-reference
-        this function only handles expressions with one valid symbol
+        If the provided expression has only one known keyword, group all the conditions
+        in one bracket. 
+        
+        Other, use the sequency given by sympy
+        parameter `root` controls at which level the keyword should be added
     """
-    num_symbols = _num_symbols_in_expr(expr, symbol_prefix=symbol_prefix)
-    if num_symbols != 1:
-        raise ValueError(("The function _expr_to_strings should only be used"
-                          " for 1-parameter string!"))
-    # Handling the expression
+    if root:
+        num_symbols, valid_symbols = _num_symbols_in_expr(expr, symbol_prefix=symbol_prefix)
+        kw = valid_symbols[0]
+        if num_symbols > 1:
+            # Use fallback mode expression convertion
+            # TODO warning
+            return _fallback_expr_to_strings(expr, symbol_prefix=symbol_prefix)
+
+    # simplify should only be called at root level and 1 keyword
+    # expected simplications are 
+    if simplify:
+        expr = simplify_logic(expr)
+
     func = expr.func
     args = expr.args
     # Symbol or numerical are always leaf nodes
     if func in (Symbol, Integer, Float):
-        if expr == target:
-            return None
-        else:
-            if func == Symbol:
+        if func == Symbol:
+            # Is current expression the keyword?
+            if expr.name.startswith(symbol_prefix):
+                return None
+            else:
                 # Wrap expression using single brackets
                 return f"'{str(expr)}'"
-            else:
-                return str(expr)
+        else:
+            return str(expr)
     
     child_strings = []
     for arg in args:
         # get a partial string from each child
         # Handle only relational nodes
-        cstr = _expr_to_strings(arg, target=target)
+        cstr = _expr_to_strings(arg, symbol_prefix=symbol_prefix, root=False)
         if cstr is None: # encounters target
             continue
         # determine the priority of operations. wrap lower priority with brackets
@@ -126,15 +153,84 @@ def _expr_to_strings(expr,
         if arg.func in (And, Or):
             cstr = "(" + cstr + ")"
         child_strings.append(cstr)
+
+    # all child calls are fallback mode!
     current_string = _join_children(expr, child_strings)
+    if root:
+        current_string = f"{kw}({current_string})"
+        
     return current_string
 
-def _fallback_expr_to_strings(expr, symbol_prefix="_"):
-    """ The fall-back version of the expression evaluation, 
-        i.e. if expression contains 2 or more symbols then use order
-        computed by sympy, no further grouping and complexity reduction
+def _fallback_join_children(expr, child_strings):
+    """ 'Fallback' mode of joining children string
+         Op('keyword', 'val1') --> keyword(Op(val1))
     """
-    pass
+    func = expr.func
+    # And / or takes multiple children as inputs
+    if func in  (And, Or):
+        if func == And:
+            char = ","
+        else:
+            char = ":"
+        full_string = char.join(child_strings)
+        return full_string
+    elif func in (Not,):
+        if len(child_strings) != 1:
+            raise ValueError("NOT operator works on only 1 parameter")
+        full_string = child_strings[0]
+        return f"!{full_string}"
+    else:
+        print(expr, expr.func, child_strings)
+        if len(child_strings) != 2:
+            raise ValueError("children numbers should be 2")
+        # always sort in the way of (keyword, value)
+        string = child_strings[0]
+        keyword = child_strings[1]
+        if func == Eq:
+            full_string = f"{keyword}({string})"
+        elif func == Ne:
+            full_string = f"{keyword}(!{string})"
+        elif func == Ge:
+            full_string = f"{keyword}({string}*)"
+        elif func == Le:
+            full_string = f"{keyword}({string})"
+        elif func == Gt:
+            full_string = f"{keyword}(!*{string})"
+        elif func == Lt:
+            full_string = f"{keyword}(!{string}*)"
+        else:
+            # Use wildcard if the operation not known
+            # TODO: make sure we're ok
+            full_string = f"{keyword}(*{string}*)"
+        return full_string
+    
+def _fallback_expr_to_strings(expr, symbol_prefix="x_"):
+    """ Use expression tree to parse the symbols and return a aflow-like api-reference
+        this is the fall-back mode that works for multiple keywords
+    """
+    func = expr.func
+    args = expr.args
+    if func in (Symbol, Integer, Float):
+        if func == Symbol:
+            if expr.name.startswith(symbol_prefix):
+                return expr.name
+            else:
+                return f"'{str(expr)}'"
+        else:
+            return str(expr)
+
+    child_strings = []
+    for arg in args:
+        cstr = _fallback_expr_to_strings(arg, symbol_prefix)
+        if arg.func in (And, Or):
+            cstr = "(" + cstr + ")"
+        child_strings.append(cstr)
+
+    # Sort the string so that keyword comes last
+    child_strings = sorted(child_strings, key=lambda s: s.startswith(symbol_prefix))
+    # _fallback_join_children tries to determine the keyword from list of strings
+    current_string = _fallback_join_children(expr, child_strings)
+    return current_string
     
 
 class Keyword(object):
