@@ -77,11 +77,28 @@ def _join_children(expr, child_strings):
             full_string = "!" + string + "*"
         else:
             # Use wildcard if the operation not known
+            # TODO: make sure we're ok
             full_string = "*" + string + "*"
 
         return full_string
 
-def _expr_to_strings(expr, target=sympy.Symbol("a")):
+def _num_symbols_in_expr(expr, symbol_prefix="x_"):
+    """ Determine how many expressions are inside the expression
+    """
+    symbols = expr.free_symbols
+    valid_symbols = [s for s in symbols if s.startswith(symbol_prefix)]
+    return len(valid_symbols)
+    
+def _expr_to_strings(expr,
+                     target=sympy.Symbol("x_auid"),
+                     symbol_prefix="x_"):
+    """ Use expression tree to parse the symbols and return a aflow-like api-reference
+        this function only handles expressions with one valid symbol
+    """
+    num_symbols = _num_symbols_in_expr(expr, symbol_prefix=symbol_prefix)
+    if num_symbols != 1:
+        raise ValueError(("The function _expr_to_strings should only be used"
+                          " for 1-parameter string!"))
     # Handling the expression
     func = expr.func
     args = expr.args
@@ -111,6 +128,14 @@ def _expr_to_strings(expr, target=sympy.Symbol("a")):
         child_strings.append(cstr)
     current_string = _join_children(expr, child_strings)
     return current_string
+
+def _fallback_expr_to_strings(expr, symbol_prefix="_"):
+    """ The fall-back version of the expression evaluation, 
+        i.e. if expression contains 2 or more symbols then use order
+        computed by sympy, no further grouping and complexity reduction
+    """
+    pass
+    
 
 class Keyword(object):
     """Represents an abstract keyword that can be sub-classed for a
