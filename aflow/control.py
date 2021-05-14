@@ -199,6 +199,12 @@ class Query(object):
             self._N = int(next(iter(response.keys())).split()[-1])
         self.responses[n] = response
 
+    def reset(self):
+        """ Convenient way to reset the query results etc.
+            this is a stateless method, does not return a Query instance
+        """
+        self.__init__(self.catalog, self.k, self.step)
+
     def finalize(self):
         """ Finalize the query matchbook once all query strings are fixed
         """

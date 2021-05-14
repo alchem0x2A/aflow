@@ -111,20 +111,36 @@ def _expr_to_strings(expr, symbol_prefix="x_", simplify=False, root=True):
     func = expr.func
     args = expr.args
     # Symbol or numerical are always leaf nodes
-    if func in (Symbol, Integer, Float):
-        if func == Symbol:
-            # Is current expression the keyword?
-            if expr.name.startswith(symbol_prefix):
-                return None
-            else:
-                # Wrap expression using single brackets
-                return f"'{str(expr)}'"
+    # use expr.is_Xxx to determine type instead of func (not working for type One)
+    if expr.is_Symbol:
+        # Is current expression the keyword?
+        if expr.name.startswith(symbol_prefix):
+            return None
         else:
-            # Reduce the precision of float to default
-            if func == Float:
-                return str(float(expr))
-            else:
-                return str(expr)
+            # Wrap expression using single brackets
+            return f"'{str(expr)}'"
+    elif expr.is_Float:
+        return str(float(expr))
+    elif expr.is_Integer:
+        return str(expr)
+    else:
+        pass
+        
+
+    # if func in (Symbol, Integer, Float):
+    #     if func == Symbol:
+    #         # Is current expression the keyword?
+    #         if expr.name.startswith(symbol_prefix):
+    #             return None
+    #         else:
+    #             # Wrap expression using single brackets
+    #             return f"'{str(expr)}'"
+    #     else:
+    #         # Reduce the precision of float to default
+    #         if func == Float:
+    #             return str(float(expr))
+    #         else:
+    #             return str(expr)
 
     child_strings = []
     for arg in args:
@@ -141,6 +157,7 @@ def _expr_to_strings(expr, symbol_prefix="x_", simplify=False, root=True):
         child_strings.append(cstr)
 
     # all child calls are fallback mode!
+    # import pdb; pdb.set_trace()
     current_string = _join_children(expr, child_strings)
     if root:
         current_string = f"{kw}({current_string})"
@@ -207,18 +224,31 @@ def _fallback_expr_to_strings(expr, symbol_prefix="x_"):
     """
     func = expr.func
     args = expr.args
-    if func in (Symbol, Integer, Float):
-        if func == Symbol:
-            if expr.name.startswith(symbol_prefix):
-                return expr.name
-            else:
-                return f"'{str(expr)}'"
+    if expr.is_Symbol:
+        # Is current expression the keyword?
+        if expr.name.startswith(symbol_prefix):
+            return None
         else:
-            # Reduce the precision of float to default
-            if func == Float:
-                return str(float(expr))
-            else:
-                return str(expr)
+            # Wrap expression using single brackets
+            return f"'{str(expr)}'"
+    elif expr.is_Float:
+        return str(float(expr))
+    elif expr.is_Integer:
+        return str(expr)
+    else:
+        pass
+    # if func in (Symbol, Integer, Float):
+    #     if func == Symbol:
+    #         if expr.name.startswith(symbol_prefix):
+    #             return expr.name
+    #         else:
+    #             return f"'{str(expr)}'"
+    #     else:
+    #         # Reduce the precision of float to default
+    #         if func == Float:
+    #             return str(float(expr))
+    #         else:
+    #             return str(expr)
 
     child_strings = []
     for arg in args:
