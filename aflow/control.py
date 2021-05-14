@@ -12,6 +12,22 @@ from aflow import msg
 from aflow.logic import _expr_to_strings
 from aflow.keywords import all_keywords
 
+def _check_input(string):
+    """Check if the input string contains invalid string
+    """
+    forbidden_chars = (
+            '"',
+            "@",
+            "\\",
+            "~",
+            "/",
+        )  # characters that will cause LUX crash
+    if any([c in string for c in forbidden_chars]):
+        msg.err(f"Input {string} contains one or more of the forbidden characters: {forbidden_chars}")
+        return False
+    else:
+        return True
+
 
 def search(catalog=None, batch_size=100):
     """Returns a :class:`aflow.control.Query` to help construct the search
@@ -89,6 +105,7 @@ class Query(object):
         iterated over again *without* needing to request the data from the
         server again.
         """
+        #TODO: confirm or remove
         self._iter = 0
 
     @property
@@ -155,7 +172,11 @@ class Query(object):
         from six.moves import urllib
 
         urlopen = urllib.request.urlopen
-        url = "{0}{1},{2}".format(server, self.matchbook(), self._directives(n, k))
+        # More robust handling, matchbook can be empty
+        _matchbook = self.matchbook()
+        if _matchbook != "":
+            _matchbook = _matchbook + ","
+        url = "{0}{1}{2}".format(server, _matchbook, self._directives(n, k))
         rawresp = urlopen(url).read().decode("utf-8")
         try:
             response = json.loads(rawresp)
@@ -178,18 +199,17 @@ class Query(object):
         self.responses[n] = response
 
     def finalize(self):
-        """Finalizes the current state of the query. This means that the request URL
-        will be saved, but the individual keyword objects will be
-        *reset*. Re-executing the search query will reconstruct the same object
-        and request, but any cached responses will be lost.
+        """ Finalize the query matchbook once all query strings are fixed
         """
         # Generate the matchbook query, this has all the filters, selects and
         # ordering information.
         self.matchbook()
-        # Next, reset all the keywords for the global AFLOW.
         # Switch out all of the keyword instances for their string
         # representations.
+        # All of these are keywords 
         self.selects = [str(s) for s in self.selects]
+        # self.selects = _extract_keywords(self.selects)
+        # parse the filters and extract known keywords
         self.filters = [str(f) for f in self.filters]
         self.excludes = [str(x) for x in self.excludes]
         self.order = str(self.order) if self.order is not None else None
@@ -204,20 +224,20 @@ class Query(object):
         The method does not enforce type check.
         Use it only when the default keyword method messes up
         """
-        forbidden_chars = (
-            '"',
-            "@",
-            "\\",
-            "~",
-            "/",
-        )  # characters that will cause LUX crash
-        if any([c in matchbook for c in forbidden_chars]):
-            raise ValueError(
-                f"The manual matchbook cannot contain the following characters: {forbidden_chars}"
-            )
-        else:
+        if not isinstance(matchbook, str):
+            msg.err((f"Manual input query must be a string, not {type(matchbook)}."
+                       "The matchbook is not set"))
+            self._matchbook = None
+            self._final = False
+            return self
+
+
+        if _check_input(matchbook):  
             self._matchbook = matchbook
             self._final = True
+        else:
+            self._matchbook = None
+        
         return self
 
     def matchbook(self):
@@ -227,6 +247,7 @@ class Query(object):
             # AFLUX orders by the first element in the query. If we have an orderby
             # specified, then place it first.
             if self.order is not None:
+                # TODO: update the exclude keyword lists
                 excludes = [x.name for x in self.excludes]
                 selects = [v.name for v in self.selects]
                 if self.order.name in excludes:
@@ -318,10 +339,17 @@ class Query(object):
         Args:
             keyword (aflow.keywords.Keyword): that encapsulates the AFLUX
               request language logic.
+
+        New version: allowing keyword as a single string containing filters
         """
+        
         if self._final_check():
             self._N = None
-            self.filters.append(keyword)
+            if isinstance(keyword, str):  # normal string
+                self.filters.append(keyword)
+            elif hasattr(keyword, "func"):  # Is a sympy symbol
+                expr = _expr_to_strings(keyword)
+                self.filters.append(expr)
         return self
 
     def select(self, *keywords):
