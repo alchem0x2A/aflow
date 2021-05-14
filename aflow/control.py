@@ -182,7 +182,8 @@ class Query(object):
             response = json.loads(rawresp)
         except:  # pragma: no cover
             # We can't easily simulate network failure...
-            msg.err("{}\n\n{}".format(url, rawresp))
+            self._N = 0
+            msg.err("API request fails for {}\n\n{}".format(url, rawresp))
             return
 
         if not response:
