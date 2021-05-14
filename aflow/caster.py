@@ -1,180 +1,125 @@
-"""Functions for casting AFLOW type names to valid python objects. This also
-creates :class:`numpy.ndarray` for vector or tensor-valued properties.
-"""
-import re
+"""Unified value casting from AFLOW query entries to results
+   There are 3 scenarios:
+   1. direct data returned from AFLOW API --> json-like entries
+   2. use format $aurl/?<field> for lazy-query --> string entries
+   3. fetch all properties of one entry by $aurl/aflowlib.json --> json-like entries
 
+   In case 1 and 3 most values can be directly used without conversion.
+   In case 2, the string from aflowlib is converted to desired values
+"""
+from aflow import msg
 import numpy as np
 
-from aflow import msg
 
-_rx_int = re.compile(r"^\d+$")
-
-
-def _strings(value):
-    return list(value.split(","))
-
-
-def _number(value):
-    if _rx_int.match(value):
-        return int(value)
+def _str2vec(string, delimiter=";,", format=float, flat=True):
+    """Parse a string and return numpy vector or matrix"""
+    # In some cases the keyword is listed but without value
+    if string == "":
+        return None
+    # Force using comma as delimiter
+    if len(delimiter) == 0:
+        delimter = ","
+    if len(delimiter) == 1:
+        array = string.strip().split(delimiter)
+    elif len(delimiter) == 2:
+        # First delimiter may be ";"
+        array = string.strip().split(delimiter[0])
+        # Second delimiter may be ",", the inner loop
+        array = [s.strip().split(delimiter[1]) for s in array]
     else:
-        return float(value)
+        raise ValueError("Length of delimiter should not exceed 2")
 
-
-def _numbers(value):
-    svals = list(value.split(","))
-    vals = list(map(_number, svals))
-    return np.array(vals)
-
-
-def _forces(value):
-    atoms = value.split(";")
-    forces = [list(map(float, a.split(","))) for a in atoms]
-    return np.array(forces)
-
-
-def _kpoints(value):
-    parts = value.split(";")
-    relaxation = np.array(list(map(_number, parts[0].split(","))))
-    if len(parts) == 1:
-        # Some entries have only relaxation kpoint information
-        return {
-            "relaxation": relaxation,
-            "static": None,
-            "points": None,
-            "nsamples": None,
-        }
-    static = np.array(list(map(_number, parts[1].split(","))))
-    if len(parts) == 3:  # pragma: no cover
-        # The web page (possibly outdated) includes an example where
-        # this would be the case. We include it here for
-        # completeness. I haven't found a case yet that we could use in
-        # the unit tests to trigger this.
-        points = parts[-1].split("-")
-        nsamples = None
-    else:
-        points = parts[-2].split("-")
-        nsamples = int(parts[-1])
-
-    return {
-        "relaxation": relaxation,
-        "static": static,
-        "points": points,
-        "nsamples": nsamples,
-    }
-
-
-def _ldau_TLUJ(value):
-    parts = value.split(";")
-    if len(parts) != 4:
-        # This should not occur unless there is an error in the db
-        return {"ldau_params": value}
-    t, l, u, j = parts
-    t = _number(t)
-    l = _numbers(l)
-    u = _numbers(u)
-    j = _numbers(j)
-
-    return {"LDAUTYPE": t, "LDAUL": l, "LDAUU": u, "LDAUJ": j}
-
-
-def _stoich(value):
-    """stoich is a deprecated keywork now"""
-    return list(map(_number, value.strip().split()))
-
-
-docstrings = {
-    "kpoints": """dict: with keys ['relaxation', 'static', 'points', 'nsamples']
-describing the cells for the relaxation and static calculations, the
-k-space symmetry points of the structure and the number of samples.""",
-    "ldau_TLUJ": """dict: with keys ['LDAUTYPE', 'LDAUL', 'LDAUU', 'LDAUJ']
-describing the parameters of the DFT+U calculations, based on a corrective functional 
-inspired by the Hubbard model.""",
-}
-"""dict: key-value pairs for custom docstrings describing the return
-value of keywords with complex structure.
-"""
-
-exceptions = [
-    "forces",
-    "kpoints",
-    "positions_cartesian",
-    "positions_fractional",
-    "spind",
-    "stoich",
-    "ldau_TLUJ",
-]
-"""list: of AFLOW keywords for which the casting has to be handled in a special
-way.
-"""
-
-
-def ptype(atype, keyword):
-    """Returns a `str` representing the *python* type for the
-    specified AFLOW type and keyword.
-
-    Args:
-        atype (str): name of the AFLOW type.
-        keyword (str): name of the keyword that the value is associated with.
-    """
-    castmap = {
-        "string": "str",
-        "strings": "list",
-        "number": "float",
-        "numbers": "list",
-        "forces": "numpy.ndarray",
-        "kpoints": "dict",
-        "positions_cartesian": "numpy.ndarray",
-        "positions_fractional": "numpy.ndarray",
-        "spind": "list",
-        "stoich": "list",
-        "ldau_TLUJ": "dict",
-        "None": None,
-        None: None,
-    }
-
-    if keyword not in exceptions:
-        return castmap[atype]
-    else:
-        return castmap[keyword]
-
-
-def cast(atype, keyword, value):
-    """Casts the specified value to a python type, using the AFLOW type as a
-    reference.
-
-    .. note:: Unfortunately, some of the AFLOW type names are not descriptive or
-      unique enough to make general rule casting possible. Instead, we have to
-      encode some exceptions directly in this module.
-
-    Args:
-        atype (str): name of the AFLOW type.
-        keyword (str): name of the keyword that the value is associated with.
-        value: object (usually a string) to cast into python types.
-    """
-    if value is None:
-        return
-
-    castmap = {
-        "string": str,
-        "strings": _strings,
-        "number": _number,
-        "numbers": _numbers,
-        "forces": _forces,
-        "kpoints": _kpoints,
-        "positions_cartesian": _forces,
-        "positions_fractional": _forces,
-        "spind": _numbers,
-        "stoich": _stoich,
-        "ldau_TLUJ": _ldau_TLUJ,
-        "None": lambda v: v,
-        None: lambda v: v,
-    }
-
+    # Use numpy to convert string array to array
     try:
-        if keyword not in exceptions:
-            return castmap[atype](value)
+        array = np.array(array, dtype=format)
+    except Exception:
+        # the exception will happen on Wyckoff_* keywords, currently not using ndarray
+        # force conversion for each item
+        # At most 2 layers, hardcoding should be fine
+        new_array = []
+        for l in array:
+            if isinstance(l, (list, tuple)):
+                new_array.append([format(c) for c in l])
+            else:
+                new_array.append(format(l))
+        return new_array
+
+    # Keyword flat makes the array into 1d vec if shape == (1, N) or (N, 1)
+    if (flat is True) and (1 in array.shape):
+        array = array.ravel()
+
+    # If format is str then return normal list
+    if format == str:
+        array = array.tolist()
+    return array
+
+
+def _list2vec(lst, format=float, flat=False):
+    """Convert list to np.array with desired format
+    TODO: test whether conversion fails
+    """
+    # No error checking for now
+    array = np.array(lst, dtype=format)
+    if flat:
+        array = array.ravel()
+    return array
+
+
+def cast(cls, value):
+    """Cast value to desired format based on the `atype`, `ptype` and `delimiter` in class
+    Algorithm:
+    0. If the keyword is deprecated, return as is
+    1. If the value is already in ptype --> return value
+    2. If the value is string, then use delimiter and ptype to determine returned value
+    3. Else, try to convert value in ptype. If failed, return value and warn
+    """
+    # Does the class has all attributes?
+    if any(
+        [
+            hasattr(cls, attr) is False
+            for attr in ("atype", "ptype", "delimiter", "status")
+        ]
+    ):
+        warn(f"The input class {cls} has incomplete attributes, will use direct value")
+        return value
+
+    # deprecated keyword
+    if cls.status == "deprecated":
+        return value
+
+    # test if value same as ptype
+    ptype = cls.ptype
+    atype = cls.atype
+    # if ptype == (list, float) then main_ptype is list
+    if isinstance(ptype, (tuple, list)):
+        main_ptype = ptype[0]
+    else:
+        main_ptype = ptype
+    # if isinstance(value, str):
+
+    # print(cls, atype, ptype, value)
+    if isinstance(value, main_ptype):
+        # Convert numbers to array
+        if (main_ptype == list) and (atype == "numbers"):
+            try:
+                value = _list2vec(value, format=ptype[1])
+            except Exception:  # Can happen if the list is not-consistent
+                pass
+        return value
+        # return value
+    elif isinstance(value, str):
+        if cls.delimiter is None:
+            pass  # Use direct conversion
         else:
-            return castmap[keyword](value)
-    except:
-        msg.err("Cannot cast {}; unknown format.".format(value))
+            # if delimiter is not None then it should have 2 ptypes
+            print(cls, value)
+            value = _str2vec(value, delimiter=cls.delimiter, format=ptype[1])
+            return value
+
+    # Try enforce type conversion, if fails return the value directly
+    try:
+        value = main_ptype(value)
+    except Exception:
+        pass
+
+    return value

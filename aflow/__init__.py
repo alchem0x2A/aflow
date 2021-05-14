@@ -23,4 +23,5 @@ def list_keywords():
     return _keywords
 
 
-import aflow.keywords as K
+# import aflow.keywords as K
+from aflow.keywords import K

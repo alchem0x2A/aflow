@@ -46,7 +46,8 @@ def test_files(paper, tmpdir):
 
 def test_atoms(paper):
     # from aflow import K
-    import aflow.keywords_json as K
+    # import aflow.keywords_json as K
+    from aflow import K
 
     paper.reset_iter()
 
@@ -142,7 +143,7 @@ def test_all():
     ]
     from aflow.entries import Entry
     from aflow import list_keywords
-    from aflow.keywords_json import all_keywords
+    from aflow.keywords import all_keywords
 
     for entry_vals in entries:
         A = Entry(**entry_vals)

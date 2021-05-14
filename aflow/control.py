@@ -1,11 +1,16 @@
 """Functions for controlling high-level search functionality for the
 AFLOW database.
 """
-server = "http://aflowlib.duke.edu/search/API/?"
+# server = "http://aflowlib.duke.edu/search/API/?"
+
+# New server address which will be compatible with other interfaces like optimade
+server = "http://aflowlib.org/API/aflux/?"
 """str: API server address over HTTP.
 """
 
 from aflow import msg
+from aflow.logic import _expr_to_strings
+from aflow.keywords import all_keywords
 
 
 def search(catalog=None, batch_size=100):
@@ -182,9 +187,6 @@ class Query(object):
         # ordering information.
         self.matchbook()
         # Next, reset all the keywords for the global AFLOW.
-        from aflow.keywords import reset
-
-        reset()
         # Switch out all of the keyword instances for their string
         # representations.
         self.selects = [str(s) for s in self.selects]

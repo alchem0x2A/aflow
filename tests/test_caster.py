@@ -1,8 +1,10 @@
 """Additional tests for the caster to ensure full code coverage.
 """
 import pytest
-from aflow.caster_new import cast
-import aflow.keywords_json as KJ
+from aflow.caster import cast
+from aflow import K
+# import aflow.keywords_json as K
+# from aflow.keywords import K
 from aflow.entries import Entry
 import numpy as np
 import itertools
@@ -42,37 +44,37 @@ def test_caster_json():
        only testing typical fields
     """
     # Return to int value
-    assert cast(KJ.natoms, 12) == 12
-    assert type(cast(KJ.natoms, "12")) == int
+    assert cast(K.natoms, 12) == 12
+    assert type(cast(K.natoms, "12")) == int
 
     # Return to float value
-    assert type(cast(KJ.density, 4.45821)) == float
-    assert type(cast(KJ.density, "4.45821")) == float
+    assert type(cast(K.density, 4.45821)) == float
+    assert type(cast(K.density, "4.45821")) == float
 
     # Should return float instead of int
-    assert type(cast(KJ.spin_cell, -0)) == float
-    assert type(cast(KJ.spin_cell, "-0")) == float
+    assert type(cast(K.spin_cell, -0)) == float
+    assert type(cast(K.spin_cell, "-0")) == float
 
     # Test scientific notation
-    assert cast(KJ.delta_electronic_energy_convergence, 2.20696e-07) == 2.20696e-7
-    assert cast(KJ.delta_electronic_energy_convergence, "2.20696e-07") == 2.20696e-7
+    assert cast(K.delta_electronic_energy_convergence, 2.20696e-07) == 2.20696e-7
+    assert cast(K.delta_electronic_energy_convergence, "2.20696e-07") == 2.20696e-7
 
     # species, should return list of strings
-    assert cast(KJ.species, ["Ca", "O", "Si"]) == ["Ca", "O", "Si"]
-    assert cast(KJ.species, "Ca,O,Si") == ["Ca", "O", "Si"]
+    assert cast(K.species, ["Ca", "O", "Si"]) == ["Ca", "O", "Si"]
+    assert cast(K.species, "Ca,O,Si") == ["Ca", "O", "Si"]
 
     # Should return list of float instead of int
     assert _all_types_in_list(
-        cast(KJ.spinD, [0, -0, -0, -0, -0, 0, 0, -0, 0, 0, 0, -0]), float
+        cast(K.spinD, [0, -0, -0, -0, -0, 0, 0, -0, 0, 0, 0, -0]), float
     )
-    assert _all_types_in_list(cast(KJ.spinD, "0,-0,-0,-0,-0,0,0,-0,0,0,0,-0"), float)
+    assert _all_types_in_list(cast(K.spinD, "0,-0,-0,-0,-0,0,0,-0,0,0,0,-0"), float)
 
     # species_pp_ZVAL, should return list of int
-    assert _all_types_in_list(cast(KJ.species_pp_ZVAL, [11, 5, 9, 6]), int)
-    assert _all_types_in_list(cast(KJ.species_pp_ZVAL, "11,5,9,6"), int)
+    assert _all_types_in_list(cast(K.species_pp_ZVAL, [11, 5, 9, 6]), int)
+    assert _all_types_in_list(cast(K.species_pp_ZVAL, "11,5,9,6"), int)
 
     # some experimental setup
-    assert cast(KJ.Wyckoff_letters, "a;c;b") == ["a", "c", "b"]
+    assert cast(K.Wyckoff_letters, "a;c;b") == ["a", "c", "b"]
 
     pos = [
         [0, 0, 0],
@@ -83,21 +85,21 @@ def test_caster_json():
     ]
     pos_string = "0,0,0;0,1.93491,1.93491;1.93491,0,1.93491;1.93491,1.93491,0;1.93491,1.93491,1.93491"
 
-    assert _all_types_in_list(cast(KJ.positions_cartesian, pos), float)
-    assert _all_types_in_list(cast(KJ.positions_cartesian, pos), float)
-    assert cast(KJ.positions_cartesian, pos).shape == (5, 3)
-    assert cast(KJ.positions_cartesian, pos).shape == (5, 3)
+    assert _all_types_in_list(cast(K.positions_cartesian, pos), float)
+    assert _all_types_in_list(cast(K.positions_cartesian, pos), float)
+    assert cast(K.positions_cartesian, pos).shape == (5, 3)
+    assert cast(K.positions_cartesian, pos).shape == (5, 3)
 
     # Fields with no default format or wrong format
-    assert type(cast(KJ.ldau_type, 2)) == float
-    assert type(cast(KJ.ldau_type, "2")) == float
+    assert type(cast(K.ldau_type, 2)) == float
+    assert type(cast(K.ldau_type, "2")) == float
 
     # Deprecated fields, no conversion
-    assert type(cast(KJ.stoich, "0.2000 0.2000 0.6000")) == str
+    assert type(cast(K.stoich, "0.2000 0.2000 0.6000")) == str
     assert (
         type(
             cast(
-                KJ.kpoints,
+                K.kpoints,
                 r"11,11,11;13,13,13;\Gamma-X,X-M,M-\Gamma,\Gamma-R,R-X,M-R;20",
             )
         )
@@ -120,8 +122,8 @@ def _read_file(filename, format="json"):
     entry = Entry(**raw_entries)
     for key, value in entry.attributes.items():
         print(key, value)
-        if hasattr(KJ, key):
-            cls = getattr(KJ, key)
+        if hasattr(K, key):
+            cls = getattr(K, key)
             if cls.status == "deprecated":
                 continue
             if value is None:  # None value can also occur

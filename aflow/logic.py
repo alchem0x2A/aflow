@@ -5,7 +5,7 @@ import sympy
 from sympy.core.relational import Eq, Ne, Ge, Le, Gt, Lt
 from sympy import And, Not, Or, Integer, Float, Symbol
 from sympy import simplify_logic
-from aflow.keywords_json import symb_to_keyword
+from aflow.keywords import symb_to_keyword
 
 # from aflow.msg import warn
 from warnings import warn

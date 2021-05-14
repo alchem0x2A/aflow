@@ -3,7 +3,8 @@ New tests on the json-schema
 Tests the behavior of the keywords with each of the different
 operators supported by the AFLUX standard.
 """
-from aflow.keywords_json import K
+# from aflow.keywords_json import K
+from aflow import K
 from aflow.logic import _expr_to_strings, _num_symbols_in_expr
 import pytest
 
