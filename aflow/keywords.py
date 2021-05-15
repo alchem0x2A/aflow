@@ -10,7 +10,7 @@ from copy import deepcopy
 from aflow.msg import warn
 
 from sympy import Symbol, Float, Integer
-from sympy import Eq, Ne, Ge, Le, Gt, Lt
+from sympy import Eq, Ne, Ge, Le, Gt, Lt, Implies
 from sympy import And, Not, Or
 
 
@@ -77,10 +77,13 @@ class Keyword(object):
     def __gt__(self, other):
         return Gt(self.symbol, _param_to_symbol(other))
 
-    # def __mod__(self, other):
-    #     assert isinstance(other, string_types)
-    #     self.cache.append("*'{0}'*".format(other))
-    #     return self
+    def __mod__(self, other):
+        """Use Implies to simulate the MOD operator
+        """
+        return Implies(self.symbol, _param_to_symbol(other))
+        # assert isinstance(other, string_types)
+        # self.cache.append("*'{0}'*".format(other))
+        # return self
 
     def __eq__(self, other):
         return Eq(self.symbol, _param_to_symbol(other))

@@ -2,7 +2,7 @@
 """
 # from aflow.keywords import Keyword
 import sympy
-from sympy.core.relational import Eq, Ne, Ge, Le, Gt, Lt
+from sympy import Eq, Ne, Ge, Le, Gt, Lt, Implies
 from sympy import And, Not, Or, Integer, Float, Symbol
 from sympy import simplify_logic
 from aflow.keywords import symb_to_keyword
@@ -75,10 +75,13 @@ def _join_children(expr, child_strings, keyword=None):
             full_string = "!*" + string
         elif func == Lt:
             full_string = "!" + string + "*"
-        else:
+        elif func == Implies:
             # Use wildcard if the operation not known
             # TODO: make sure we're ok
             full_string = "*" + string + "*"
+        else:
+            full_string = string
+
         if keyword is not None:
             full_string = f"{keyword}({full_string})"
         return full_string
@@ -92,6 +95,8 @@ def _expr_to_strings(expr, symbol_prefix="x_", simplify=False, root=True):
     Other, use the sequency given by sympy
     parameter `root` controls at which level the keyword should be added
     """
+    if not hasattr(expr, "func"):
+        raise TypeError(f"Expect to take boolean expression but get {type(expr)} instead")
     if root:
         num_symbols, valid_symbols = _num_symbols_in_expr(
             expr, symbol_prefix=symbol_prefix
@@ -206,15 +211,18 @@ def _fallback_join_children(expr, child_strings):
         elif func == Ge:
             full_string = f"{keyword}({string}*)"
         elif func == Le:
-            full_string = f"{keyword}({string})"
+            full_string = f"{keyword}(*{string})"
         elif func == Gt:
             full_string = f"{keyword}(!*{string})"
         elif func == Lt:
             full_string = f"{keyword}(!{string}*)"
-        else:
+        elif func == Implies:
             # Use wildcard if the operation not known
             # TODO: make sure we're ok
             full_string = f"{keyword}(*{string}*)"
+        else:
+            full_string = string
+
         return full_string
 
 
@@ -227,7 +235,7 @@ def _fallback_expr_to_strings(expr, symbol_prefix="x_"):
     if expr.is_Symbol:
         # Is current expression the keyword?
         if expr.name.startswith(symbol_prefix):
-            return None
+            return expr.name
         else:
             # Wrap expression using single brackets
             return f"'{str(expr)}'"

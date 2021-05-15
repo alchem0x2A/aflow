@@ -357,6 +357,10 @@ class Query(object):
             elif hasattr(keyword, "func"):  # Is a sympy symbol
                 expr = _expr_to_strings(keyword)
                 self.filters.append(expr)
+            else:
+                msg.err(("Query.filter() takes either "
+                         "boolean expression or string,"
+                         f" not {type(keyword)}"))
         return self
 
     def select(self, *keywords):

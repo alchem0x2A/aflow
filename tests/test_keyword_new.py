@@ -28,107 +28,79 @@ def test_num_variables():
 #         assert kw in kws_from_module
 #         assert obj is kws_from_module[kw]
 
+def test_type():
+    # in some cased 1 is treated as sympy.One
+    assert _expr_to_strings(K.Egap > 1)
+    # float version
+    assert _expr_to_strings(K.Egap > 1.0)
+    # multiple variables
+    assert _expr_to_strings((K.Egap > 1.0) & (K.Egap < 2.0))
+
+    # Following expression will raise TypeError
+    with pytest.raises(TypeError):
+        _expr_to_strings(K.Egap)
+
+    with pytest.raises(TypeError):
+        _expr_to_strings("Egap(1*)")
+
+
 
 def test_operators():
     """Test operators. All tests in this function are 1 variable"""
 
     # and
     k0 = (K.nspecies >= 2) & (K.nspecies <= 4)
-    print(_expr_to_strings(k0))
+    assert _expr_to_strings(k0) == "nspecies(2*,*4)"
 
-    # reset()
+    k1 = (K.Egap >= 6) & (K.PV_cell <= 13)
+    assert _expr_to_strings(k1) == "Egap(6*),PV_cell(*13)"
 
-    # from aflow.keywords import reset
+    k2 = (K.Egap == 6) & (K.PV_cell == 13)
+    assert _expr_to_strings(k2) == "Egap(6),PV_cell(13)"
 
-    # k1 = (K.Egap >= 6) & (K.PV_cell <= 13)
-    # assert str(k1) == "Egap(6*),PV_cell(*13)"
-    # assert str(K.Egap) == "Egap(6*)"
-    # assert str(K.PV_cell) == "PV_cell(*13)"
+    k3 = (K.Egap == 6) & (K.PV_cell != 13)
+    assert _expr_to_strings(k3) == "Egap(6),PV_cell(!13)"
 
-    # reset()
+    k4 = (K.data_source == "aflowlib") | (K.species % "Si")
+    assert _expr_to_strings(k4) == "data_source('aflowlib'):species(*'Si'*)"
 
-    # from aflow.keywords import reset
-
-    # k2 = (K.Egap == 6) & (K.PV_cell == 13)
-    # assert str(k2) == "Egap(6),PV_cell(13)"
-    # assert str(K.Egap) == "Egap(6)"
-    # assert str(K.PV_cell) == "PV_cell(13)"
-
-    # reset()
-
-    # from aflow.keywords import reset
-
-    # k3 = (K.Egap == 6) & (K.PV_cell != 13)
-    # assert str(k3) == "Egap(6),PV_cell(!13)"
-    # assert str(K.Egap) == "Egap(6)"
-    # assert str(K.PV_cell) == "PV_cell(!13)"
-
-    # k4 = (K.data_source == "aflowlib") | (K.species % "Si")
-    # assert str(k4) == "data_source('aflowlib'):species(*'Si'*)"
-    # assert str(K.data_source) == "data_source('aflowlib')"
-    # assert str(K.species) == "species(*'Si'*)"
-
-    # reset()
-
-    # k5 = (K.data_source > "aflow") & (K.species < "Ag")
-    # assert str(k5) == "data_source('aflow'*),species(*'Ag')"
-    # assert str(K.data_source) == "data_source('aflow'*)"
-    # assert str(K.species) == "species(*'Ag')"
+    k5 = (K.data_source > "aflow") & (K.species < "Ag")
+    assert _expr_to_strings(k5) == "data_source(!*'aflow'),species(!'Ag'*)"
 
 
-# def test_invert():
-#     """Tests inversion (i.e., negation) of an operator."""
-#     from aflow.keywords import reset
+
+def test_invert():
+    from sympy import simplify_logic
+
+    k0 = (K.Egap > 6) & (K.PV_cell < 13)
+    kn0 = ~k0
+    # The not simplifies version
+    assert _expr_to_strings(kn0) == "!(Egap(!*6),PV_cell(!13*))"
+    
+    kn0 = simplify_logic(kn0)
+    strings =  _expr_to_strings(kn0)
+    assert ":" in strings
+    for itm in strings.split(":"):
+        assert "!" not in itm
+
 
 #     reset()
 
-#     k0 = (K.Egap > 6) & (K.PV_cell < 13)
-#     kn0 = ~k0
-#     assert str(kn0) == "Egap(*6),PV_cell(13*)"
-#     assert str(~K.Egap) == "Egap(*6)"
-#     assert str(~K.PV_cell) == "PV_cell(13*)"
+    k1 = (K.Egap >= 6) & (K.PV_cell <= 13)
+    kn1 = simplify_logic(~k1)
+    strings =  _expr_to_strings(kn1)
+    assert ":" in strings
+    for itm in strings.split(":"):
+        assert "!" in itm
 
-#     # Now invert everybody back again and see if it is good.
-#     assert str(~kn0) == "Egap(!*6),PV_cell(!13*)"
-#     assert str(~K.Egap) == "Egap(!*6)"
-#     assert str(~K.PV_cell) == "PV_cell(!13*)"
-
-#     reset()
-
-#     k1 = (K.Egap >= 6) & (K.PV_cell <= 13)
-#     kn1 = ~k1
-#     assert str(kn1) == "Egap(!6*),PV_cell(!*13)"
-#     assert str(~K.Egap) == "Egap(!6*)"
-#     assert str(~K.PV_cell) == "PV_cell(!*13)"
-
-#     # Now invert everybody back again and see if it is good.
-#     assert str(~kn1) == "Egap(6*),PV_cell(*13)"
-#     assert str(~K.Egap) == "Egap(6*)"
-#     assert str(~K.PV_cell) == "PV_cell(*13)"
-
-#     reset()
-
-#     k2 = (K.Egap == 6) & (K.PV_cell != 13)
-#     kn2 = ~k2
-#     assert str(kn2) == "Egap(!6),PV_cell(13)"
-#     assert str(~K.Egap) == "Egap(!6)"
-#     assert str(~K.PV_cell) == "PV_cell(13)"
-
-#     # Now invert everybody back again and see if it is good.
-#     assert str(~kn2) == "Egap(6),PV_cell(!13)"
-#     assert str(~K.Egap) == "Egap(6)"
-#     assert str(~K.PV_cell) == "PV_cell(!13)"
-
-
-# def test_self():
-#     """Tests combinations of multiple conditions against the same
-#     keyword.
-#     """
-#     from aflow.keywords import reset
-
-#     reset()
-#     k0 = ((K.Egap > 6) | (K.Egap < 21)) & (K.PV_cell < 13)
-#     assert str(k0) == "Egap(!*6:!21*),PV_cell(!13*)"
+def test_self():
+    """Tests combinations of multiple conditions against the same
+    keyword.
+    """
+    k0 = ((K.Egap > 6) | (K.Egap < 21)) & (K.PV_cell < 13)
+    # multiple keywords by default do not combine
+    assert sorted(_expr_to_strings(k0).split(",")) == ["(Egap(!*6):Egap(!21*))",
+                                                       "PV_cell(!13*)"]
 
 #     reset()
 #     k1 = ((K.Egap > 6) | (K.Egap < 21)) & ((K.PV_cell < 13) | (K.PV_cell > 2))
@@ -137,14 +109,14 @@ def test_operators():
 #     assert str(K.PV_cell) == "PV_cell(!13*:!*2)"
 
 #     reset()
-#     k2 = ((K.Egap > 0) & (K.Egap < 2)) | ((K.Egap > 5) | (K.Egap < 7))
-#     assert str(k2) == "Egap((!*0,!2*):(!*5:!7*))"
-#     assert len(K.Egap.cache) == 0
-#     assert len(K.Egap.state) == 1
+    k2 = ((K.Egap > 0) & (K.Egap < 2)) | ((K.Egap > 5) | (K.Egap < 7))
+    # Bracket for the other OR is omitted
+    assert _expr_to_strings(k2) == "Egap(!*5:!7*:(!*0,!2*))"
 
 #     reset()
-#     k3 = ((K.Egap > 0) & (K.Egap < 2)) | (K.Egap == 5)
-#     assert str(k2) == "Egap(5:(!*0,!2*))"
+    k3 = ((K.Egap > 0) & (K.Egap < 2)) | (K.Egap == 5)
+    assert _expr_to_strings(k3) == "Egap(5:(!*0,!2*))"
+#     assert str(k2) == 
 
 #     reset()
 #     k4 = ((K.Egap >= 6) | (K.Egap <= 21)) & (K.PV_cell <= 13)
@@ -157,14 +129,12 @@ def test_operators():
 #     assert str(K.PV_cell) == "PV_cell(*13:2*)"
 
 #     reset()
-#     k6 = ((K.Egap >= 0) & (K.Egap <= 2)) | ((K.Egap >= 5) | (K.Egap <= 7))
-#     assert str(k6) == "Egap((0*,*2):(5*:*7))"
-#     assert len(K.Egap.cache) == 0
-#     assert len(K.Egap.state) == 1
+    k6 = ((K.Egap >= 0) & (K.Egap <= 2)) | ((K.Egap >= 5) & (K.Egap <= 7))
+    assert _expr_to_strings(k6) == "Egap((0*,*2):(5*,*7))"
 
 #     reset()
-#     k7 = ((K.Egap >= 0) & (K.Egap <= 2)) | (K.Egap != 5)
-#     assert str(k7) == "Egap(!5:(0*,*2))"
+    k7 = ((K.Egap >= 0) & (K.Egap <= 2)) | (K.Egap != 5)
+    assert _expr_to_strings(k7) == "Egap(!5:(0*,*2))"
 
 
 # def test_corner():
