@@ -176,21 +176,22 @@ class Entry(object):
             return self.attributes[keyword]
         else:
             import json
+            from six.moves import urllib
 
-            import requests
+            # import requests
 
             aurl = self.attributes["aurl"].replace(".edu:", ".edu/")
             # url = "http://{0}?{1}".format(aurl, keyword)
             url = "http://{0}/aflowlib.json".format(aurl)
-            r = requests.get(url)
+            rawresp = urllib.request.urlopen(url).read().decode("utf-8")
 
-            if len(r.text) == 0:
+            if len(rawresp) == 0:
                 # TODO: Do we really have errors
                 return
 
             # We need to coerce the string returned from aflow into the
             # appropriate python format.
-            raw_responses = json.loads(r.text)
+            raw_responses = json.loads(rawresp)
             for k, v in raw_responses.items():
                 if k not in self.attributes.keys():
                     res = _val_from_str(k, v)
@@ -252,9 +253,10 @@ class Entry(object):
         aurl = self.attributes["aurl"].replace(".edu:", ".edu/")
         url = "http://{0}/{1}".format(aurl, target)
 
-        import requests
+        from six.moves import urllib
 
-        lines = requests.get(url).text.split("\n")
+        rawresp = urllib.request.urlopen(url).read().decode("utf-8")
+        lines = rawresp.split("\n")
         preline = " ".join(self.species).strip() + " !"
         lines[0] = preline + lines[0]
         contcar = "\n".join(lines)

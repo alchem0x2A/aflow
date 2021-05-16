@@ -28,6 +28,7 @@ def test_num_variables():
 #         assert kw in kws_from_module
 #         assert obj is kws_from_module[kw]
 
+
 def test_type():
     # in some cased 1 is treated as sympy.One
     assert _expr_to_strings(K.Egap > 1)
@@ -42,7 +43,6 @@ def test_type():
 
     with pytest.raises(TypeError):
         _expr_to_strings("Egap(1*)")
-
 
 
 def test_operators():
@@ -68,7 +68,6 @@ def test_operators():
     assert _expr_to_strings(k5) == "data_source(!*'aflow'),species(!'Ag'*)"
 
 
-
 def test_invert():
     from sympy import simplify_logic
 
@@ -76,22 +75,22 @@ def test_invert():
     kn0 = ~k0
     # The not simplifies version
     assert _expr_to_strings(kn0) == "!(Egap(!*6),PV_cell(!13*))"
-    
+
     kn0 = simplify_logic(kn0)
-    strings =  _expr_to_strings(kn0)
+    strings = _expr_to_strings(kn0)
     assert ":" in strings
     for itm in strings.split(":"):
         assert "!" not in itm
 
-
-#     reset()
+    #     reset()
 
     k1 = (K.Egap >= 6) & (K.PV_cell <= 13)
     kn1 = simplify_logic(~k1)
-    strings =  _expr_to_strings(kn1)
+    strings = _expr_to_strings(kn1)
     assert ":" in strings
     for itm in strings.split(":"):
         assert "!" in itm
+
 
 def test_self():
     """Tests combinations of multiple conditions against the same
@@ -99,40 +98,42 @@ def test_self():
     """
     k0 = ((K.Egap > 6) | (K.Egap < 21)) & (K.PV_cell < 13)
     # multiple keywords by default do not combine
-    assert sorted(_expr_to_strings(k0).split(",")) == ["(Egap(!*6):Egap(!21*))",
-                                                       "PV_cell(!13*)"]
+    assert sorted(_expr_to_strings(k0).split(",")) == [
+        "(Egap(!*6):Egap(!21*))",
+        "PV_cell(!13*)",
+    ]
 
-#     reset()
-#     k1 = ((K.Egap > 6) | (K.Egap < 21)) & ((K.PV_cell < 13) | (K.PV_cell > 2))
-#     assert str(k1) == "Egap(!*6:!21*),PV_cell(!13*:!*2)"
-#     assert str(K.Egap) == "Egap(!*6:!21*)"
-#     assert str(K.PV_cell) == "PV_cell(!13*:!*2)"
+    #     reset()
+    #     k1 = ((K.Egap > 6) | (K.Egap < 21)) & ((K.PV_cell < 13) | (K.PV_cell > 2))
+    #     assert str(k1) == "Egap(!*6:!21*),PV_cell(!13*:!*2)"
+    #     assert str(K.Egap) == "Egap(!*6:!21*)"
+    #     assert str(K.PV_cell) == "PV_cell(!13*:!*2)"
 
-#     reset()
+    #     reset()
     k2 = ((K.Egap > 0) & (K.Egap < 2)) | ((K.Egap > 5) | (K.Egap < 7))
     # Bracket for the other OR is omitted
     assert _expr_to_strings(k2) == "Egap(!*5:!7*:(!*0,!2*))"
 
-#     reset()
+    #     reset()
     k3 = ((K.Egap > 0) & (K.Egap < 2)) | (K.Egap == 5)
     assert _expr_to_strings(k3) == "Egap(5:(!*0,!2*))"
-#     assert str(k2) == 
+    #     assert str(k2) ==
 
-#     reset()
-#     k4 = ((K.Egap >= 6) | (K.Egap <= 21)) & (K.PV_cell <= 13)
-#     assert str(k4) == "Egap(6*:*21),PV_cell(*13)"
+    #     reset()
+    #     k4 = ((K.Egap >= 6) | (K.Egap <= 21)) & (K.PV_cell <= 13)
+    #     assert str(k4) == "Egap(6*:*21),PV_cell(*13)"
 
-#     reset()
-#     k5 = ((K.Egap >= 6) | (K.Egap <= 21)) & ((K.PV_cell <= 13) | (K.PV_cell >= 2))
-#     assert str(k5) == "Egap(6*:*21),PV_cell(*13:2*)"
-#     assert str(K.Egap) == "Egap(6*:*21)"
-#     assert str(K.PV_cell) == "PV_cell(*13:2*)"
+    #     reset()
+    #     k5 = ((K.Egap >= 6) | (K.Egap <= 21)) & ((K.PV_cell <= 13) | (K.PV_cell >= 2))
+    #     assert str(k5) == "Egap(6*:*21),PV_cell(*13:2*)"
+    #     assert str(K.Egap) == "Egap(6*:*21)"
+    #     assert str(K.PV_cell) == "PV_cell(*13:2*)"
 
-#     reset()
+    #     reset()
     k6 = ((K.Egap >= 0) & (K.Egap <= 2)) | ((K.Egap >= 5) & (K.Egap <= 7))
     assert _expr_to_strings(k6) == "Egap((0*,*2):(5*,*7))"
 
-#     reset()
+    #     reset()
     k7 = ((K.Egap >= 0) & (K.Egap <= 2)) | (K.Egap != 5)
     assert _expr_to_strings(k7) == "Egap(!5:(0*,*2))"
 

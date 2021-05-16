@@ -4,7 +4,6 @@ import aflow
 from aflow.msg import warn
 import json
 from pathlib import Path
-import requests
 import types
 from copy import deepcopy
 from aflow.msg import warn
@@ -78,8 +77,7 @@ class Keyword(object):
         return Gt(self.symbol, _param_to_symbol(other))
 
     def __mod__(self, other):
-        """Use Implies to simulate the MOD operator
-        """
+        """Use Implies to simulate the MOD operator"""
         return Implies(self.symbol, _param_to_symbol(other))
         # assert isinstance(other, string_types)
         # self.cache.append("*'{0}'*".format(other))
@@ -102,12 +100,13 @@ class Keyword(object):
 
 
 def download_schema():
+    from six.moves import urllib
+
     url = "http://aflow.org/API/aapi-schema"
     warn("AAPI-SCHEMA file not found. Download from {:s}".format(url))
-    req = requests.get(url)
-    req.encoding = "utf-8"
+    rawresp = urllib.request.urlopen(url).read().decode("utf-8")
     # No error check for the moment
-    json_dict = json.loads(req.text)
+    json_dict = json.loads(rawresp)
     return json_dict
 
 

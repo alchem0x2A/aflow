@@ -12,18 +12,20 @@ from aflow import msg
 from aflow.logic import _expr_to_strings
 from aflow.keywords import all_keywords
 
+
 def _check_input(string):
-    """Check if the input string contains invalid string
-    """
+    """Check if the input string contains invalid string"""
     forbidden_chars = (
-            '"',
-            "@",
-            "\\",
-            "~",
-            "/",
-        )  # characters that will cause LUX crash
+        '"',
+        "@",
+        "\\",
+        "~",
+        "/",
+    )  # characters that will cause LUX crash
     if any([c in string for c in forbidden_chars]):
-        msg.err(f"Input {string} contains one or more of the forbidden characters: {forbidden_chars}")
+        msg.err(
+            f"Input {string} contains one or more of the forbidden characters: {forbidden_chars}"
+        )
         return False
     else:
         return True
@@ -105,7 +107,7 @@ class Query(object):
         iterated over again *without* needing to request the data from the
         server again.
         """
-        #TODO: confirm or remove
+        # TODO: confirm or remove
         self._iter = 0
 
     @property
@@ -200,20 +202,19 @@ class Query(object):
         self.responses[n] = response
 
     def reset(self):
-        """ Convenient way to reset the query results etc.
-            this is a stateless method, does not return a Query instance
+        """Convenient way to reset the query results etc.
+        this is a stateless method, does not return a Query instance
         """
         self.__init__(self.catalog, self.k, self.step)
 
     def finalize(self):
-        """ Finalize the query matchbook once all query strings are fixed
-        """
+        """Finalize the query matchbook once all query strings are fixed"""
         # Generate the matchbook query, this has all the filters, selects and
         # ordering information.
         self.matchbook()
         # Switch out all of the keyword instances for their string
         # representations.
-        # All of these are keywords 
+        # All of these are keywords
         self.selects = [str(s) for s in self.selects]
         # self.selects = _extract_keywords(self.selects)
         # parse the filters and extract known keywords
@@ -232,19 +233,22 @@ class Query(object):
         Use it only when the default keyword method messes up
         """
         if not isinstance(matchbook, str):
-            msg.err((f"Manual input query must be a string, not {type(matchbook)}."
-                       "The matchbook is not set"))
+            msg.err(
+                (
+                    f"Manual input query must be a string, not {type(matchbook)}."
+                    "The matchbook is not set"
+                )
+            )
             self._matchbook = None
             self._final = False
             return self
 
-
-        if _check_input(matchbook):  
+        if _check_input(matchbook):
             self._matchbook = matchbook
             self._final = True
         else:
             self._matchbook = None
-        
+
         return self
 
     def matchbook(self):
@@ -349,7 +353,7 @@ class Query(object):
 
         New version: allowing keyword as a single string containing filters
         """
-        
+
         if self._final_check():
             self._N = None
             if isinstance(keyword, str):  # normal string
@@ -358,9 +362,13 @@ class Query(object):
                 expr = _expr_to_strings(keyword)
                 self.filters.append(expr)
             else:
-                msg.err(("Query.filter() takes either "
-                         "boolean expression or string,"
-                         f" not {type(keyword)}"))
+                msg.err(
+                    (
+                        "Query.filter() takes either "
+                        "boolean expression or string,"
+                        f" not {type(keyword)}"
+                    )
+                )
         return self
 
     def select(self, *keywords):

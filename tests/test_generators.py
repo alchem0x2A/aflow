@@ -3,6 +3,7 @@ have all the relevant keywords in them.
 """
 import pytest
 
+
 @pytest.mark.skip(reason="Generator no longer needed")
 def test_keywords_entries(tmpdir):
     """Makes sure the generated files have all the relevant contents

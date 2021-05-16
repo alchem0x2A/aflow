@@ -96,7 +96,9 @@ def _expr_to_strings(expr, symbol_prefix="x_", simplify=False, root=True):
     parameter `root` controls at which level the keyword should be added
     """
     if not hasattr(expr, "func"):
-        raise TypeError(f"Expect to take boolean expression but get {type(expr)} instead")
+        raise TypeError(
+            f"Expect to take boolean expression but get {type(expr)} instead"
+        )
     if root:
         num_symbols, valid_symbols = _num_symbols_in_expr(
             expr, symbol_prefix=symbol_prefix
@@ -130,7 +132,6 @@ def _expr_to_strings(expr, symbol_prefix="x_", simplify=False, root=True):
         return str(expr)
     else:
         pass
-        
 
     # if func in (Symbol, Integer, Float):
     #     if func == Symbol:

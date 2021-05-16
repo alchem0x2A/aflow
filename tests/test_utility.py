@@ -3,6 +3,7 @@
 import pytest
 from os import path
 
+
 @pytest.mark.skip(reason="the reporoot method needs to be updated")
 def test_reporoot():
     """Tests the absolute path to the reporoot."""
