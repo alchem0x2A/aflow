@@ -9,14 +9,13 @@ def paper():
     """Returns a search query that mimics the one shown in the paper
     for electrically-insulating heat sinks.
     """
-    import aflow
-    import aflow.keywords as kw
+    from aflow import search, K
 
     result = (
-        aflow.search(batch_size=20)
-        .select(kw.agl_thermal_conductivity_300K)
-        .filter(kw.Egap >= 6)
-        .orderby(kw.agl_thermal_conductivity_300K, True)
+        search(batch_size=20)
+        .select(K.agl_thermal_conductivity_300K)
+        .filter(K.Egap >= 6)
+        .orderby(K.agl_thermal_conductivity_300K, True)
     )
 
     # Let's pre-fill the responses from the saved JSON files so that the tests

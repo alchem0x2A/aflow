@@ -26,7 +26,7 @@ def test_Si():
     from aflow import K
 
     Si = (
-        aflow.search(catalog="icsd")
+        aflow.search(catalog="ICSD")
         .filter(K.species == "Si")
         .select(K.positions_cartesian)
         .exclude(K.Egap)
@@ -48,32 +48,30 @@ def test_Si():
 
 def test_ordering():
     """Tests a live query with ordering."""
-    import aflow
-    import aflow.keywords as kw
+    from aflow import search, K
 
     result = (
-        aflow.search(batch_size=20)
-        .select(kw.agl_thermal_conductivity_300K)
-        .filter(kw.Egap > 6)
-        .orderby(kw.agl_thermal_conductivity_300K, True)
+        search(batch_size=20)
+        .select(K.agl_thermal_conductivity_300K)
+        .filter(K.Egap > 6)
+        .orderby(K.agl_thermal_conductivity_300K, True)
     )
     assert len(result[80].aurl) > 0
 
     orderby_exclude_result = (
-        aflow.search(batch_size=20)
-        .select(kw.agl_thermal_conductivity_300K)
-        .filter(kw.Egap > 6)
-        .orderby(kw.auid)
-        .exclude(kw.auid)
+        search(batch_size=20)
+        .select(K.agl_thermal_conductivity_300K)
+        .filter(K.Egap > 6)
+        .orderby(K.auid)
+        .exclude(K.auid)
     )
 
     assert orderby_exclude_result.matchbook().startswith("$auid")
 
 
 def test_empty_query_result():
-    import aflow
-    import aflow.keywords as kw
+    from aflow import search, K
 
     # Check for auids that end with "aflow", which none do
-    result = aflow.search(catalog="icsd", batch_size=20).filter(kw.auid < "aflow")
+    result = search(catalog="ICSD", batch_size=20).filter(K.auid < "aflow")
     assert result.N == 0
