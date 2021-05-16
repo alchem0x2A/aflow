@@ -31,7 +31,9 @@ setup(
     long_description="" if not path.isfile("README.md") else read_md("README.md"),
     author="Conrad W Rosenbrock",
     author_email="rosenbrockc@gmail.com",
-    url="https://github.com/rosenbrockc/aflow",
+    maintainer="T.Tian",
+    maintainer_email="alchem0x2a@gmail.com",
+    url="https://github.com/ulissigroup/aflow",
     license="MIT",
     setup_requires=[
         "pytest-runner",
