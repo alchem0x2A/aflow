@@ -61,7 +61,7 @@ class Keyword(object):
         return hash(self.name)
 
     def __str__(self):
-        return name
+        return self.name
 
     def __le__(self, other):
         """Use sympy to compare"""

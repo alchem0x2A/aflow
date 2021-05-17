@@ -357,7 +357,8 @@ class Query(object):
         if self._final_check():
             self._N = None
             if isinstance(keyword, str):  # normal string
-                self.filters.append(keyword)
+                if _check_input(keyword):
+                    self.filters.append(keyword)
             elif hasattr(keyword, "func"):  # Is a sympy symbol
                 expr = _expr_to_strings(keyword)
                 self.filters.append(expr)
