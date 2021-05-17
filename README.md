@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/rosenbrockc/aflow.svg?branch=master)](https://travis-ci.org/rosenbrockc/aflow) [![Coverage Status](https://coveralls.io/repos/github/rosenbrockc/aflow/badge.svg?branch=master)](https://coveralls.io/github/rosenbrockc/aflow?branch=master)
 
 
-# `AFLOW` Python API
+# `AFLOW` Python API -- *Patched*
 
 **This repo is a forked version of [rosenbrockc/aflow](https://rosenbrockc.github.io/aflow/) to for bug fix**
 
@@ -15,9 +15,12 @@ original `aflow` package, while several functionalities are fixed:
 
 3. Improved filter conditions, powered by boolean operations in `sympy`.
 
-For a list of examples, please check the notebook. 
+For a list of examples, please check the notebook in [notebooks/demo_patched_api.ipynb](notebooks/demo_patched_api.ipynb). 
 
-
+To install:
+```
+pip install git+https://github.com/ulissigroup/aflow.git
+```
 
 
 Python API wrapping the AFLUX API language for AFLOW library. _Note:_ This is not an official repo of the AFLOW consortium and is not maintained by them. [API Documentation](https://rosenbrockc.github.io/aflow/).
