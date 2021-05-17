@@ -1,27 +1,30 @@
 [![Build Status](https://travis-ci.org/rosenbrockc/aflow.svg?branch=master)](https://travis-ci.org/rosenbrockc/aflow) [![Coverage Status](https://coveralls.io/repos/github/rosenbrockc/aflow/badge.svg?branch=master)](https://coveralls.io/github/rosenbrockc/aflow?branch=master)
 
 
-# `AFLOW` Python API -- *Patched*
+# `AFLOW` Python API - *Patched*
 
-**This repo is a forked version of [rosenbrockc/aflow](https://rosenbrockc.github.io/aflow/) to for bug fix**
+**This repo is a forked version of [rosenbrockc/aflow](https://rosenbrockc.github.io/aflow/) for bug fix**
 
-The Python API intends to have (almost) identical behavior with the
-original `aflow` package, while several functionalities are fixed:
+The patched Python API intends to have (almost) identical behavior with the
+original `aflow`, while several functionalities are fixed:
 
 1. Allow dynamic schema loading and keyword class creation. Can work
    with further versions of aflow without major modifications
-   
 2. More robust keyword casting for both string-type or converted inputs. 
-
 3. Improved filter conditions, powered by boolean operations in `sympy`.
+4. Better handling of aurl with multiple colons (e.g. GGA+U calculations)
 
-For a list of examples, please check the notebook in [notebooks/demo_patched_api.ipynb](notebooks/demo_patched_api.ipynb). 
+
+For a list of examples in the patched API, please check the notebook in [notebooks/demo_patched_api.ipynb](notebooks/demo_patched_api.ipynb). 
 
 To install:
 ```
 pip install git+https://github.com/ulissigroup/aflow.git
 ```
 
+---
+
+# Descriptions for original aflow python API
 
 Python API wrapping the AFLUX API language for AFLOW library. _Note:_ This is not an official repo of the AFLOW consortium and is not maintained by them. [API Documentation](https://rosenbrockc.github.io/aflow/).
 
